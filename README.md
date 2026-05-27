@@ -1,4 +1,4 @@
-# MahaTask - Academic Task Management Dashboard
+# Saku - Academic Task Management Dashboard
 
 A modern, dark-themed academic task management dashboard built with Next.js, shadcn/ui, and Framer Motion. Designed for students and educators to manage tasks, schedules, and collaborate through study groups.
 
@@ -225,4 +225,4 @@ For issues, questions, or suggestions, please open an issue in the repository.
 
 ---
 
-Built with passion for academic excellence. Maximize your productivity with MahaTask!
+Built with passion for academic excellence. Maximize your productivity with Saku!
