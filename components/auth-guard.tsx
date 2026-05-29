@@ -14,7 +14,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only run redirection logic when not loading
     if (!loading) {
-      const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/";
+      const isPublicPath = pathname === "/login" || pathname === "/register";
       const token = getToken();
 
       // If user is not logged in (no token or no user data) and trying to access protected route
@@ -41,7 +41,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent flash of protected content before redirect
-  const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/";
+  const isPublicPath = pathname === "/login" || pathname === "/register";
   const token = getToken();
   
   if (!isPublicPath && (!token || !user)) {
