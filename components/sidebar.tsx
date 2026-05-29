@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarContent,
@@ -56,11 +57,15 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center justify-between w-full px-2 transition-all duration-300 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
                 <SidebarMenuButton size="lg" asChild className="transition-all duration-300 ease-in-out hover:bg-white/10 group-data-[collapsible=icon]:hidden w-auto mr-2">
                   <Link href="/dashboard" className="flex items-center gap-4">
-                    <div className="flex aspect-square size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
-                      <CheckSquare className="size-6" />
-                    </div>
+                    <Image
+                      src="/logo.png"
+                      alt="Saku"
+                      width={40}
+                      height={40}
+                      className="aspect-square size-10 shrink-0 rounded-xl shadow-lg shadow-indigo-500/20"
+                    />
                     <div className="grid flex-1 text-left text-sm leading-tight overflow-hidden">
-                      <span className="truncate font-bold text-xl liquid-text max-w-[200px]">MahaTask</span>
+                      <span className="truncate font-bold text-xl liquid-text max-w-[200px]">Saku</span>
                       <span className="truncate text-xs text-white/50 max-w-[200px]">Academic Dashboard</span>
                     </div>
                   </Link>

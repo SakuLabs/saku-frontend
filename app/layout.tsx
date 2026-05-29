@@ -20,10 +20,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MahaTask - Academic Dashboard",
+  title: "Saku - Academic Dashboard",
   description:
-    "Manage your academic tasks, schedule, and study groups with MahaTask",
-  generator: "v0.app",
+    "Manage your academic tasks, schedule, and study groups with Saku",
+  icons: { icon: "/logo.png" },
 };
 
 export default function RootLayout({

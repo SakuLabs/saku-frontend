@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -34,9 +35,10 @@ export function Navigation() {
         animate={{ opacity: 1, x: 0 }}
         className="hidden md:flex flex-col gap-2 p-4 border-r border-white/5 bg-black/20 backdrop-blur-xl h-full"
       >
-        <div className="mb-8 px-2">
+        <div className="mb-8 flex items-center gap-2 px-2">
+          <Image src="/logo.png" alt="Saku" width={32} height={32} className="size-8 rounded-lg" />
           <h1 className="text-2xl font-black liquid-text tracking-tight">
-            MahaTask
+            Saku
           </h1>
         </div>
 
@@ -78,9 +80,12 @@ export function Navigation() {
 
       {/* Mobile Menu Button */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 bg-black/20 backdrop-blur-md sticky top-0 z-50">
-        <h1 className="text-xl font-black liquid-text">
-          MahaTask
-        </h1>
+        <div className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Saku" width={28} height={28} className="size-7 rounded-md" />
+          <h1 className="text-xl font-black liquid-text">
+            Saku
+          </h1>
+        </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="text-white hover:text-white/80 transition-colors"
