@@ -231,11 +231,15 @@ export function FloatingChat() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            className="fixed bottom-6 right-6 z-50"
+            className="group fixed bottom-6 right-6 z-50"
           >
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/70 px-2.5 py-1 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              Study Groups
+            </span>
             <Button
               onClick={() => setIsOpen(true)}
               size="icon"
+              aria-label="Open Study Groups chat"
               className="h-14 w-14 rounded-full shadow-2xl shadow-primary/50 bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-110"
             >
               <MessageSquare className="h-6 w-6" />

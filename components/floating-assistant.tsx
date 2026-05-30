@@ -15,12 +15,16 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
+  ListChecks,
+  CalendarClock,
+  Flame,
+  ChevronRight,
 } from 'lucide-react';
 
 const SUGGESTIONS = [
-  'Apa saja tugas saya minggu ini?',
-  'Buat jadwal belajar besok jam 7 malam',
-  'Tugas mana yang paling mendesak?',
+  { icon: ListChecks, label: 'Apa saja tugas saya minggu ini?' },
+  { icon: CalendarClock, label: 'Buat jadwal belajar besok jam 7 malam' },
+  { icon: Flame, label: 'Tugas mana yang paling mendesak?' },
 ];
 
 export function FloatingAssistant() {
@@ -76,17 +80,24 @@ export function FloatingAssistant() {
       {/* Launcher bubble: sits to the left of the group-chat bubble */}
       <AnimatePresence>
         {!isOpen && (
-          <motion.button
+          <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            onClick={() => setIsOpen(true)}
-            aria-label="Open Saku AI assistant"
-            className="fixed bottom-6 right-24 z-50 h-14 w-14 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] hover:scale-105 active:scale-95 transition-transform"
+            className="group fixed bottom-6 right-24 z-50"
           >
-            <Sparkles className="h-6 w-6" />
-          </motion.button>
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/70 px-2.5 py-1 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              Saku AI
+            </span>
+            <button
+              onClick={() => setIsOpen(true)}
+              aria-label="Open Saku AI assistant"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] transition-transform hover:scale-105 active:scale-95"
+            >
+              <Sparkles className="h-6 w-6" />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -189,21 +200,38 @@ export function FloatingAssistant() {
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : bubbles.length === 0 ? (
-                  <div className="flex h-full flex-col items-center justify-center text-center gap-4 px-2">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-                      <Sparkles className="h-6 w-6" />
+                  <div className="flex h-full flex-col items-center justify-center gap-7 px-1">
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <div className="relative">
+                        <div className="absolute inset-0 -z-10 rounded-full bg-indigo-500/40 blur-2xl" />
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
+                          <Sparkles className="h-7 w-7" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold text-white">
+                          Halo
+                          {user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+                        </p>
+                        <p className="mx-auto max-w-[15rem] text-sm leading-relaxed text-white/50">
+                          Saya bisa bantu atur tugas dan jadwalmu. Coba tanya:
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-white/70 text-sm">
-                      Ask me to organize your tasks and schedule.
-                    </p>
-                    <div className="flex flex-col gap-2 w-full">
-                      {SUGGESTIONS.map((s) => (
+                    <div className="flex w-full flex-col gap-2">
+                      {SUGGESTIONS.map(({ icon: Icon, label }) => (
                         <button
-                          key={s}
-                          onClick={() => void sendMessage(s)}
-                          className="text-left text-sm text-white/80 rounded-xl border border-white/10 bg-white/5 px-3 py-2 hover:bg-white/10 transition-colors"
+                          key={label}
+                          onClick={() => void sendMessage(label)}
+                          className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-left transition-colors hover:border-white/20 hover:bg-white/10"
                         >
-                          {s}
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-indigo-300 transition-colors group-hover:bg-indigo-500/20">
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <span className="flex-1 text-sm leading-snug text-white/80">
+                            {label}
+                          </span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-white/30 transition-all group-hover:translate-x-0.5 group-hover:text-white/70" />
                         </button>
                       ))}
                     </div>
