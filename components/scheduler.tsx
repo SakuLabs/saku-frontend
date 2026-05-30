@@ -20,9 +20,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScheduleForm } from '@/components/schedule-form';
-import type { CreateScheduleRequest } from '@/lib/types';
-import { format, isSameDay } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, LayoutList, ListTodo, Plus } from 'lucide-react';
+import type { CreateScheduleRequest, ScheduleColor, TaskPriority } from '@/lib/types';
+import { addDays, format, isSameDay } from 'date-fns';
+import { Calendar as CalendarIcon, CalendarClock, Clock, LayoutList, ListTodo, Plus } from 'lucide-react';
 
 interface SchedulerProps {
   userId: string;
@@ -31,7 +31,7 @@ interface SchedulerProps {
 export function Scheduler({ userId }: SchedulerProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { tasks } = useTasks();
-  const { schedules, createSchedule, error: scheduleError } = useSchedule();
+  const { schedules, createSchedule, deleteSchedule, error: scheduleError } = useSchedule();
   const [activeView, setActiveView] = useState<'calendar' | 'daily' | 'timeline'>('calendar');
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -40,12 +40,43 @@ export function Scheduler({ userId }: SchedulerProps) {
     if (created) setCreateOpen(false);
   };
 
-  const upcomingDeadlines = tasks
-    .filter(t => t.dueDate && new Date(t.dueDate) >= new Date())
-    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
-    .slice(0, 5);
-
   const todaysTasks = tasks.filter(t => t.dueDate && isSameDay(new Date(t.dueDate), new Date()));
+
+  // Unified "Up Next": schedule events + task deadlines, interleaved by time.
+  type UpNextItem =
+    | { kind: 'event'; id: string; title: string; when: Date; subtitle: string; color: ScheduleColor; high: boolean }
+    | { kind: 'deadline'; id: string; title: string; when: Date; subtitle: string; priority: TaskPriority; high: boolean };
+
+  const now = new Date();
+  const eventItems: UpNextItem[] = schedules
+    .filter(s => new Date(s.endTime) >= now)
+    .map(s => ({
+      kind: 'event',
+      id: s.id,
+      title: s.title,
+      when: new Date(s.startTime),
+      subtitle: s.type === 'MEETING' ? 'Meeting' : s.type === 'TASK_REMINDER' ? 'Reminder' : 'Event',
+      color: s.color,
+      high: s.importance === 'HIGH',
+    }));
+  const deadlineItems: UpNextItem[] = tasks
+    .filter(t => t.dueDate && new Date(t.dueDate) >= now)
+    .map(t => ({
+      kind: 'deadline',
+      id: t.id,
+      title: t.title,
+      when: new Date(t.dueDate!),
+      subtitle: t.description || 'Deadline',
+      priority: t.priority,
+      high: t.priority === 'HIGH',
+    }));
+  const upNext = [...eventItems, ...deadlineItems]
+    .sort((a, b) => a.when.getTime() - b.when.getTime())
+    .slice(0, 8);
+
+  const handleDeleteSchedule = async (id: string) => {
+    await deleteSchedule(id);
+  };
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col gap-6 p-6">
@@ -124,14 +155,25 @@ export function Scheduler({ userId }: SchedulerProps) {
 
               {activeView === 'daily' && (
                 <div className="h-full overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
-                  <div className="p-6 h-full overflow-y-auto">
-                    <DailySchedule slots={schedules.map(s => ({
-                      id: s.id,
-                      title: s.title,
-                      start_time: s.startTime,
-                      end_time: s.endTime,
-                      type: 'schedule' as const
-                    }))} date={selectedDate} />
+                  <div className="p-6 h-full overflow-hidden">
+                    <DailySchedule
+                      slots={schedules
+                        .filter(s => isSameDay(new Date(s.startTime), selectedDate))
+                        .map(s => ({
+                          id: s.id,
+                          title: s.title,
+                          start: s.startTime,
+                          end: s.endTime,
+                          type: s.type,
+                          color: s.color,
+                          importance: s.importance,
+                        }))}
+                      date={selectedDate}
+                      onDeleteSlot={handleDeleteSchedule}
+                      onPrevDay={() => setSelectedDate(d => addDays(d, -1))}
+                      onNextDay={() => setSelectedDate(d => addDays(d, 1))}
+                      onToday={() => setSelectedDate(new Date())}
+                    />
                   </div>
                 </div>
               )}
@@ -164,34 +206,68 @@ export function Scheduler({ userId }: SchedulerProps) {
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden p-0">
               <ScrollArea className="h-full px-6 pb-6">
-                <div className="space-y-4">
-                  {upcomingDeadlines.length > 0 ? (
-                    upcomingDeadlines.map((task, i) => (
+                <div className="space-y-3">
+                  {upNext.length > 0 ? (
+                    upNext.map((item, i) => (
                       <motion.div
-                        key={task.id}
+                        key={`${item.kind}-${item.id}`}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="group flex flex-col gap-2 p-3 rounded-lg border bg-background/50 hover:bg-background hover:shadow-sm transition-all"
+                        transition={{ delay: i * 0.06 }}
+                        className="group flex gap-3 p-3 rounded-lg border bg-background/50 hover:bg-background hover:shadow-sm transition-all"
                       >
-                        <div className="flex justify-between items-start">
-                          <span className="font-medium line-clamp-1">{task.title}</span>
-                          <Badge variant={task.priority === 'HIGH' ? 'destructive' : 'secondary'} className="text-[10px] px-1.5 py-0 h-5">
-                            {task.priority}
-                          </Badge>
+                        {/* Kind icon */}
+                        <div
+                          className={
+                            'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md ' +
+                            (item.kind === 'event'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-orange-500/10 text-orange-500')
+                          }
+                        >
+                          {item.kind === 'event' ? (
+                            <CalendarClock className="h-4 w-4" />
+                          ) : (
+                            <ListTodo className="h-4 w-4" />
+                          )}
                         </div>
-                        <div className="flex justify-between items-center text-xs text-muted-foreground">
-                          <span>{task.description || 'General'}</span>
-                          <span className={isSameDay(new Date(task.dueDate!), new Date()) ? 'text-orange-500 font-medium' : ''}>
-                            {format(new Date(task.dueDate!), 'MMM d, h:mm a')}
-                          </span>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-medium line-clamp-1">{item.title}</span>
+                            {item.kind === 'deadline' ? (
+                              <Badge
+                                variant={item.priority === 'HIGH' ? 'destructive' : 'secondary'}
+                                className="shrink-0 text-[10px] px-1.5 py-0 h-5"
+                              >
+                                {item.priority}
+                              </Badge>
+                            ) : (
+                              item.high && (
+                                <Badge variant="destructive" className="shrink-0 text-[10px] px-1.5 py-0 h-5">
+                                  HIGH
+                                </Badge>
+                              )
+                            )}
+                          </div>
+                          <div className="mt-1 flex justify-between items-center text-xs text-muted-foreground gap-2">
+                            <span className="truncate">{item.subtitle}</span>
+                            <span
+                              className={
+                                'shrink-0 ' +
+                                (isSameDay(item.when, new Date()) ? 'text-orange-500 font-medium' : '')
+                              }
+                            >
+                              {format(item.when, 'MMM d, h:mm a')}
+                            </span>
+                          </div>
                         </div>
                       </motion.div>
                     ))
                   ) : (
                     <div className="text-center py-12 text-muted-foreground">
-                      <p>No upcoming deadlines.</p>
-                      <p className="text-xs mt-1">Time to relax!</p>
+                      <p>Nothing upcoming.</p>
+                      <p className="text-xs mt-1">You&apos;re all caught up!</p>
                     </div>
                   )}
                 </div>
