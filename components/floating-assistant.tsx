@@ -5,9 +5,9 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { useAgent } from '@/hooks/use-agent';
+import { ChatMarkdown } from '@/components/chat-markdown';
 import { cn } from '@/lib/utils';
 import {
-  Sparkles,
   X,
   Send,
   Plus,
@@ -129,8 +129,8 @@ export function FloatingAssistant() {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
               ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shrink-0">
-                  <Sparkles className="h-5 w-5" />
+                <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full">
+                  <Image src="/ai.png" alt="" fill sizes="36px" className="object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -212,8 +212,8 @@ export function FloatingAssistant() {
                     <div className="flex flex-col items-center gap-3 text-center">
                       <div className="relative">
                         <div className="absolute inset-0 -z-10 rounded-full bg-indigo-500/40 blur-2xl" />
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30">
-                          <Sparkles className="h-7 w-7" />
+                        <div className="relative h-14 w-14 overflow-hidden rounded-2xl shadow-lg shadow-indigo-500/30">
+                          <Image src="/ai.png" alt="" fill sizes="56px" className="object-cover" />
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -255,13 +255,17 @@ export function FloatingAssistant() {
                     >
                       <div
                         className={cn(
-                          'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words',
+                          'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed break-words',
                           b.role === 'user'
-                            ? 'bg-indigo-500 text-white rounded-br-md'
+                            ? 'bg-indigo-500 text-white rounded-br-md whitespace-pre-wrap'
                             : 'bg-white/10 text-white/90 rounded-bl-md',
                         )}
                       >
-                        {b.content}
+                        {b.role === 'user' ? (
+                          b.content
+                        ) : (
+                          <ChatMarkdown>{b.content}</ChatMarkdown>
+                        )}
                         {b.actions && b.actions.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {b.actions.map((a, i) => (
