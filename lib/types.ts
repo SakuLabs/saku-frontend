@@ -103,7 +103,7 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskStatusRequest {
-  status: 'IN_PROGRESS' | 'DONE';
+  status: TaskStatus;
 }
 
 export interface UpdateTaskProgressRequest {
