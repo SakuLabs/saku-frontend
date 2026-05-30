@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { useAgent } from '@/hooks/use-agent';
@@ -93,9 +94,16 @@ export function FloatingAssistant() {
             <button
               onClick={() => setIsOpen(true)}
               aria-label="Open Saku AI assistant"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] transition-transform hover:scale-105 active:scale-95"
+              className="relative h-14 w-14 overflow-hidden rounded-full shadow-[0_8px_32px_rgba(99,102,241,0.45)] transition-transform hover:scale-105 active:scale-95"
             >
-              <Sparkles className="h-6 w-6" />
+              <Image
+                src="/ai.png"
+                alt=""
+                fill
+                sizes="56px"
+                className="object-cover"
+                priority
+              />
             </button>
           </motion.div>
         )}
