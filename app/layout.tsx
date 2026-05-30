@@ -7,6 +7,7 @@ import { SidebarLayout } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthGuard } from "@/components/auth-guard";
 import { AuthProvider } from "@/components/auth-provider";
+import { RealtimeProvider } from "@/components/realtime-provider";
 import { FloatingWidgets } from "@/components/floating-widgets";
 
 const geistSans = Geist({
@@ -37,13 +38,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         <AuthProvider>
-          <SidebarProvider defaultOpen={true}>
-            <AuthGuard>
-              <SidebarLayout>{children}</SidebarLayout>
-            </AuthGuard>
-          </SidebarProvider>
-          <Toaster richColors position="top-right" />
-          <FloatingWidgets />
+          <RealtimeProvider>
+            <SidebarProvider defaultOpen={true}>
+              <AuthGuard>
+                <SidebarLayout>{children}</SidebarLayout>
+              </AuthGuard>
+            </SidebarProvider>
+            <Toaster richColors position="top-right" />
+            <FloatingWidgets />
+          </RealtimeProvider>
         </AuthProvider>
       </body>
     </html>

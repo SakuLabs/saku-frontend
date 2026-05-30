@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { useRealtime } from "@/components/realtime-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
@@ -46,6 +47,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const { totalUnread } = useRealtime();
 
   // Close the off-canvas sheet after navigating on mobile
   const closeOnMobile = () => {
@@ -109,9 +111,18 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                           ${isActive ? ACTIVE_ITEM : IDLE_ITEM}
                         `}
                       >
-                        <Link href={item.href} onClick={closeOnMobile} className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+                        <Link href={item.href} onClick={closeOnMobile} className="relative flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
                           <Icon className={`${isActive ? "text-white" : "text-white/60 group-hover:text-white"} h-5 w-5 shrink-0 transition-colors`} />
                           <span className="font-medium text-base whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:max-w-0 max-w-[200px]">{item.label}</span>
+                          {item.id === "chat" && totalUnread > 0 && (
+                            <>
+                              <span className="ml-auto h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold group-data-[collapsible=icon]:hidden">
+                                {totalUnread > 99 ? "99+" : totalUnread}
+                              </span>
+                              {/* Collapsed: small dot on the icon corner */}
+                              <span className="hidden group-data-[collapsible=icon]:block absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[#030712]" />
+                            </>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

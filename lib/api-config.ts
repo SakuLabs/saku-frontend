@@ -41,6 +41,8 @@ export const API_CONFIG = {
       GET_GROUP_MESSAGES: (groupId: string) => `/chat/group/${groupId}`,
       GET_DIRECT_MESSAGES: (userId: string) => `/chat/dm/${userId}`,
       SEND_MESSAGE: '/chat/messages',
+      GET_UNREAD: '/chat/unread',
+      MARK_READ: '/chat/conversations/read',
     },
 
     // AI Agent endpoints

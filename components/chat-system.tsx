@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChat } from '@/hooks/use-chat';
 import { useSocial } from '@/hooks/use-social';
-import { useWebSocket } from '@/hooks/use-websocket';
+import { useRealtime } from '@/components/realtime-provider';
 import { ChatMessages } from '@/components/chat-messages';
 import { ChatInput } from '@/components/chat-input';
 import { Button } from '@/components/ui/button';
@@ -61,10 +61,17 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
     isConnected,
     sendMessage: sendMessageWs,
     onMessage,
+    onTyping,
+    sendTyping,
     onFriendRequest,
+    onFriendAccepted,
     joinConversation,
     leaveConversation,
-  } = useWebSocket();
+    unread,
+    markRead,
+    setActiveConversation,
+    isOnline,
+  } = useRealtime();
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [selectedConversationType, setSelectedConversationType] = useState<ConversationType>('group');
@@ -76,6 +83,9 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState<'groups' | 'friends'>('groups');
+  const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set());
+  const typingTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const sentTypingRef = useRef(false);
 
   // Initial load
   useEffect(() => {
@@ -84,7 +94,8 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
     refreshFriends();
   }, [refreshGroups, refreshFriendRequests, refreshFriends]);
 
-  // Load messages when conversation changes
+  // Load messages when conversation changes + mark read + tell provider which
+  // conversation is active (so it won't badge incoming messages for it).
   useEffect(() => {
     if (selectedConversationId) {
       if (selectedConversationType === 'group') {
@@ -92,8 +103,21 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
       } else {
         loadDirectMessages(selectedConversationId);
       }
+      setActiveConversation(selectedConversationType, selectedConversationId);
+      markRead(selectedConversationType, selectedConversationId);
+    } else {
+      setActiveConversation(selectedConversationType, null);
     }
-  }, [selectedConversationId, selectedConversationType, loadGroupMessages, loadDirectMessages]);
+    setTypingUserIds(new Set());
+    return () => setActiveConversation(selectedConversationType, null);
+  }, [
+    selectedConversationId,
+    selectedConversationType,
+    loadGroupMessages,
+    loadDirectMessages,
+    setActiveConversation,
+    markRead,
+  ]);
 
   // Join/leave Socket.IO room when conversation changes so the server routes messages here.
   // isConnected is included so the join is re-emitted if the socket connects after the conversation was already selected.
@@ -135,23 +159,63 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
           }
           return [...prev, message];
         });
+        // Keep the conversation read while it's open and receiving messages.
+        if (message.senderId !== userId) {
+          markRead(selectedConversationType, selectedConversationId);
+        }
       }
     };
 
     return onMessage(handleNewMessage);
-  }, [selectedConversationId, selectedConversationType, onMessage]);
+  }, [selectedConversationId, selectedConversationType, onMessage, markRead, userId]);
 
-  // WebSocket real-time friend request listener
+  // Real-time: keep this page's lists in sync. The toast is owned by the
+  // always-mounted FloatingChat so it only fires once.
   useEffect(() => {
-    const handleFriendRequest = (data: any) => {
-      refreshFriendRequests();
-      toast.info('New friend request!', {
-        description: `${data.senderName || 'Someone'} sent you a friend request.`,
-      });
-    };
-
-    return onFriendRequest(handleFriendRequest);
+    return onFriendRequest(() => refreshFriendRequests());
   }, [onFriendRequest, refreshFriendRequests]);
+
+  useEffect(() => {
+    return onFriendAccepted(() => refreshFriends());
+  }, [onFriendAccepted, refreshFriends]);
+
+  // Real-time: typing indicators for the open conversation
+  useEffect(() => {
+    if (!selectedConversationId) return;
+    const timeouts = typingTimeoutsRef.current;
+    const handleTyping = (data: {
+      userId: string;
+      isTyping: boolean;
+      groupId?: string;
+      directMessageUserId?: string;
+    }) => {
+      if (data.userId === userId) return;
+      const relevant =
+        selectedConversationType === 'group'
+          ? data.groupId === selectedConversationId
+          : data.userId === selectedConversationId;
+      if (!relevant) return;
+
+      setTypingUserIds((prev) => {
+        const next = new Set(prev);
+        if (data.isTyping) next.add(data.userId);
+        else next.delete(data.userId);
+        return next;
+      });
+
+      if (timeouts[data.userId]) clearTimeout(timeouts[data.userId]);
+      if (data.isTyping) {
+        timeouts[data.userId] = setTimeout(() => {
+          setTypingUserIds((prev) => {
+            const next = new Set(prev);
+            next.delete(data.userId);
+            return next;
+          });
+        }, 4000);
+      }
+    };
+    return onTyping(handleTyping);
+  }, [onTyping, selectedConversationId, selectedConversationType, userId]);
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
@@ -178,8 +242,35 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
     setSelectedConversationType('direct');
   };
 
+  const stopTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const emitTyping = useCallback(() => {
+    if (!selectedConversationId) return;
+    const groupId = selectedConversationType === 'group' ? selectedConversationId : undefined;
+    const dmId = selectedConversationType === 'direct' ? selectedConversationId : undefined;
+    if (!sentTypingRef.current) {
+      sentTypingRef.current = true;
+      sendTyping(true, groupId, dmId);
+    }
+    if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+    stopTypingTimeoutRef.current = setTimeout(() => {
+      sentTypingRef.current = false;
+      sendTyping(false, groupId, dmId);
+    }, 2000);
+  }, [selectedConversationId, selectedConversationType, sendTyping]);
+
   const handleSendMessage = async (content: string) => {
     if (!selectedConversationId) return;
+    // Stop the typing indicator immediately on send.
+    if (stopTypingTimeoutRef.current) clearTimeout(stopTypingTimeoutRef.current);
+    if (sentTypingRef.current) {
+      sentTypingRef.current = false;
+      sendTyping(
+        false,
+        selectedConversationType === 'group' ? selectedConversationId : undefined,
+        selectedConversationType === 'direct' ? selectedConversationId : undefined,
+      );
+    }
 
     if (isConnected) {
       // Optimistic insert so the sender sees the message immediately
@@ -273,6 +364,21 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
 
   const selectedGroup = groups.find(g => g.id === selectedConversationId);
   const selectedFriend = friends.find(f => f.id === selectedConversationId);
+
+  const typingNames = Array.from(typingUserIds).map((id) => {
+    if (selectedConversationType === 'group') {
+      return selectedGroup?.members?.find((m) => m.id === id)?.name || 'Someone';
+    }
+    return selectedFriend?.name || 'Someone';
+  });
+  const typingLabel =
+    typingNames.length === 0
+      ? null
+      : typingNames.length === 1
+        ? `${typingNames[0]} is typing…`
+        : `${typingNames.length} people are typing…`;
+
+  const friendOnline = selectedFriend ? isOnline(selectedFriend.id) : false;
 
   const filteredGroups = groups.filter(g =>
     g.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -531,6 +637,11 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
                         {group.members?.length || 0} members
                       </div>
                     </div>
+                    {unread[`group:${group.id}`] > 0 && (
+                      <Badge className="h-5 min-w-5 px-1.5 text-[10px] rounded-full shrink-0">
+                        {unread[`group:${group.id}`]}
+                      </Badge>
+                    )}
                   </button>
                 ))
               )
@@ -560,21 +671,31 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
                         : "hover:bg-secondary/50 text-foreground/80 hover:text-foreground"
                     )}
                   >
-                    <Avatar className="h-10 w-10 border border-border/50">
-                      <AvatarImage src={friend.avatarUrl} />
-                      <AvatarFallback className={cn(
-                        "text-xs font-medium",
-                        selectedConversationId === friend.id && selectedConversationType === 'direct'
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-secondary-foreground"
-                      )}>
-                        {friend.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative shrink-0">
+                      <Avatar className="h-10 w-10 border border-border/50">
+                        <AvatarImage src={friend.avatarUrl} />
+                        <AvatarFallback className={cn(
+                          "text-xs font-medium",
+                          selectedConversationId === friend.id && selectedConversationType === 'direct'
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground"
+                        )}>
+                          {friend.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isOnline(friend.id) && (
+                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                      )}
+                    </div>
                     <div className="flex-1 overflow-hidden">
                       <div className="font-medium truncate">{friend.name}</div>
                       <div className="text-xs text-muted-foreground truncate font-mono">{friend.userCode}</div>
                     </div>
+                    {unread[`dm:${friend.id}`] > 0 && (
+                      <Badge className="h-5 min-w-5 px-1.5 text-[10px] rounded-full shrink-0">
+                        {unread[`dm:${friend.id}`]}
+                      </Badge>
+                    )}
                   </button>
                 ))
               )
@@ -623,8 +744,11 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
                       </>
                     ) : (
                       <>
-                        <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                        Direct Message
+                        <span className={cn(
+                          "w-2 h-2 rounded-full inline-block",
+                          friendOnline ? "bg-green-500" : "bg-muted-foreground/40"
+                        )} />
+                        {friendOnline ? 'Active now' : 'Offline'}
                       </>
                     )}
                   </p>
@@ -650,7 +774,24 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
 
             {/* Input Area */}
             <div className="p-4 bg-background/40 backdrop-blur-md border-t border-border/40">
-              <ChatInput onSend={handleSendMessage} isLoading={chatLoading} />
+              <AnimatePresence>
+                {typingLabel && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="px-2 pb-1.5 text-xs text-muted-foreground flex items-center gap-1.5"
+                  >
+                    <span className="flex gap-0.5">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground animate-bounce" />
+                    </span>
+                    {typingLabel}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <ChatInput onSend={handleSendMessage} onTyping={emitTyping} isLoading={chatLoading} />
             </div>
           </>
         ) : (
