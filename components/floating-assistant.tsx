@@ -28,6 +28,20 @@ const SUGGESTIONS = [
   { icon: Flame, label: 'Tugas mana yang paling mendesak?' },
 ];
 
+// Rotating "thinking" labels, Claude-style.
+const THINKING_STATUSES = [
+  'Berpikir',
+  'Meracik rencana',
+  'Menghitung',
+  'Menyusun jadwal',
+  'Menelaah tugasmu',
+  'Mikir keras',
+  'Menggali ide',
+  'Menyetel waktu',
+  'Merapikan agenda',
+  'Gooning',
+];
+
 export function FloatingAssistant() {
   const { user, loading } = useAuth();
   const {
@@ -46,7 +60,18 @@ export function FloatingAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [input, setInput] = useState('');
+  const [statusIdx, setStatusIdx] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Cycle the thinking label while the agent is working.
+  useEffect(() => {
+    if (!sending) return;
+    setStatusIdx(Math.floor(Math.random() * THINKING_STATUSES.length));
+    const id = setInterval(() => {
+      setStatusIdx((i) => (i + 1) % THINKING_STATUSES.length);
+    }, 1800);
+    return () => clearInterval(id);
+  }, [sending]);
 
   useEffect(() => {
     if (isOpen) void refreshConversations();
@@ -295,10 +320,19 @@ export function FloatingAssistant() {
 
                 {sending && (
                   <div className="flex justify-start">
-                    <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-white/10 px-4 py-3">
-                      <span className="h-2 w-2 rounded-full bg-white/60 animate-bounce [animation-delay:-0.3s]" />
-                      <span className="h-2 w-2 rounded-full bg-white/60 animate-bounce [animation-delay:-0.15s]" />
-                      <span className="h-2 w-2 rounded-full bg-white/60 animate-bounce" />
+                    <div className="flex items-center gap-2.5 rounded-2xl rounded-bl-md bg-white/10 px-4 py-3">
+                      <span className="flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-300 animate-bounce [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-300 animate-bounce [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-300 animate-bounce" />
+                      </span>
+                      <span
+                        key={statusIdx}
+                        className="animate-in fade-in text-sm text-white/70"
+                      >
+                        {THINKING_STATUSES[statusIdx]}
+                        <span className="text-white/40">…</span>
+                      </span>
                     </div>
                   </div>
                 )}
@@ -314,20 +348,20 @@ export function FloatingAssistant() {
             {/* Composer */}
             {!showHistory && (
               <div className="border-t border-white/10 bg-white/5 p-3">
-                <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 focus-within:border-white/20 transition-colors">
+                <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-1.5 pl-4 pr-1.5 focus-within:border-white/25 transition-colors">
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     rows={1}
                     placeholder="Message Saku AI..."
-                    className="flex-1 resize-none bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none max-h-28"
+                    className="flex-1 resize-none self-center bg-transparent py-1 text-sm leading-6 text-white placeholder:text-white/40 focus:outline-none max-h-28"
                   />
                   <button
                     onClick={submit}
                     disabled={sending || !input.trim()}
                     aria-label="Send message"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white transition-all hover:bg-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white transition-colors hover:bg-indigo-400 disabled:bg-white/10 disabled:text-white/40 disabled:cursor-not-allowed"
                   >
                     {sending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
