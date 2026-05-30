@@ -9,10 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 interface ChatInputProps {
   onSend: (message: string) => void;
+  onTyping?: () => void;
   isLoading?: boolean;
 }
 
-export function ChatInput({ onSend, isLoading }: ChatInputProps) {
+export function ChatInput({ onSend, onTyping, isLoading }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +66,10 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
       <Input
         ref={inputRef}
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={(e) => {
+          setMessage(e.target.value);
+          onTyping?.();
+        }}
         onKeyDown={handleKeyDown}
         placeholder="Type a message..."
         disabled={isLoading}

@@ -181,6 +181,11 @@ export interface Message {
   };
 }
 
+export interface UnreadCount {
+  conversationKey: string; // "group:{groupId}" or "dm:{otherUserId}"
+  count: number;
+}
+
 // Social Types
 export interface Friend {
   id: string;

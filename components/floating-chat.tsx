@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useChat } from '@/hooks/use-chat';
 import { useSocial } from '@/hooks/use-social';
 import { useAuth } from '@/hooks/use-auth';
-import { useWebSocket } from '@/hooks/use-websocket';
+import { useRealtime } from '@/components/realtime-provider';
 import { toast } from "sonner";
 import { cn } from '@/lib/utils';
 import type { Message, Group, Friend } from '@/lib/types';
@@ -52,7 +52,19 @@ export function FloatingChat() {
   const { user, loading } = useAuth();
   const { groups, friends, friendRequests, refreshGroups, refreshFriends, refreshFriendRequests, createGroup } = useSocial();
   const { messages, loadGroupMessages, loadDirectMessages, sendMessage: sendMessageRest, clearMessages } = useChat();
-  const { isConnected, sendMessage: sendMessageWs, onMessage, onFriendRequest, joinConversation, leaveConversation } = useWebSocket();
+  const {
+    isConnected,
+    sendMessage: sendMessageWs,
+    onMessage,
+    onFriendRequest,
+    onFriendAccepted,
+    joinConversation,
+    leaveConversation,
+    unread,
+    markRead,
+    setActiveConversation: setActiveConvKey,
+    isOnline,
+  } = useRealtime();
 
   useEffect(() => {
     if (user) {
@@ -64,15 +76,36 @@ export function FloatingChat() {
 
   // Real-time friend request notification
   useEffect(() => {
-    const handleFriendRequest = (data: any) => {
+    const handleFriendRequest = (data: { senderName?: string }) => {
       refreshFriendRequests();
       toast.info('New friend request!', {
         description: `${data.senderName || 'Someone'} sent you a friend request.`,
       });
     };
-
     return onFriendRequest(handleFriendRequest);
   }, [onFriendRequest, refreshFriendRequests]);
+
+  // Real-time: your request was accepted → friend appears live
+  useEffect(() => {
+    const handleAccepted = (data: { friend?: { name?: string } }) => {
+      refreshFriends();
+      toast.success('Friend request accepted', {
+        description: `${data.friend?.name || 'Someone'} is now your friend.`,
+      });
+    };
+    return onFriendAccepted(handleAccepted);
+  }, [onFriendAccepted, refreshFriends]);
+
+  // Tell the provider which conversation is open + mark it read.
+  useEffect(() => {
+    if (activeConversation) {
+      setActiveConvKey(activeConversation.type, activeConversation.id);
+      markRead(activeConversation.type, activeConversation.id);
+    } else {
+      setActiveConvKey('direct', null);
+    }
+    return () => setActiveConvKey('direct', null);
+  }, [activeConversation, setActiveConvKey, markRead]);
 
   useEffect(() => {
     if (activeConversation) {
@@ -130,12 +163,15 @@ export function FloatingChat() {
             }
             return [...prev, message];
           });
+          if (message.senderId !== user?.id) {
+            markRead(activeConversation.type, activeConversation.id);
+          }
         }
       }
     };
 
     return onMessage(handleNewMessage);
-  }, [activeConversation, onMessage]);
+  }, [activeConversation, onMessage, markRead, user?.id]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !activeConversation) return;
@@ -193,21 +229,23 @@ export function FloatingChat() {
       id: g.id,
       name: g.name,
       type: 'group' as ConversationType,
-      unreadCount: 0,
+      unreadCount: unread[`group:${g.id}`] || 0,
     })),
     ...friends.map(f => ({
       id: f.id,
       name: f.name,
       type: 'direct' as ConversationType,
       avatarUrl: f.avatarUrl,
-      unreadCount: 0,
-      isOnline: Math.random() > 0.5, // Replace with real status
+      unreadCount: unread[`dm:${f.id}`] || 0,
+      isOnline: isOnline(f.id),
     })),
   ];
 
   const filteredConversations = conversations.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalUnread = Object.values(unread).reduce((a, b) => a + b, 0);
 
   const formatMessageTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -244,9 +282,9 @@ export function FloatingChat() {
             >
               <MessageSquare className="h-6 w-6" />
             </Button>
-            {friendRequests.length > 0 && (
-              <div className="absolute -top-1 -right-1 h-6 w-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-background">
-                {friendRequests.length}
+            {friendRequests.length + totalUnread > 0 && (
+              <div className="absolute -top-1 -right-1 h-6 min-w-6 px-1 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-background">
+                {friendRequests.length + totalUnread}
               </div>
             )}
           </motion.div>
@@ -291,10 +329,10 @@ export function FloatingChat() {
                       </h3>
                       {activeConversation.type === 'direct' && (
                         <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-                          {activeConversation.isOnline && (
+                          {isOnline(activeConversation.id) && (
                             <span className="w-2 h-2 bg-green-500 rounded-full" />
                           )}
-                          {activeConversation.isOnline ? 'Active now' : 'Offline'}
+                          {isOnline(activeConversation.id) ? 'Active now' : 'Offline'}
                         </p>
                       )}
                     </div>
