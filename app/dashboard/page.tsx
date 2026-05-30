@@ -115,6 +115,21 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [tasks]);
 
+  // Get upcoming events beyond today (next few days)
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return schedules
+      .filter((s) => {
+        const start = parseISO(s.startTime);
+        return start > now && !isToday(start);
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+      )
+      .slice(0, 4);
+  }, [schedules]);
+
   const container: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -519,7 +534,7 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10 pb-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10">
         {/* Urgent Tasks */}
         <motion.div
           className="col-span-4 lg:col-span-4"
@@ -603,55 +618,105 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Quick Actions Grid */}
+        {/* Upcoming Events */}
         <motion.div
           className="col-span-4 lg:col-span-3"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <div className="h-full grid grid-cols-2 gap-4">
-            <Link href="/tasks" className="col-span-1">
-              <div className="glass-panel rounded-[2rem] p-4 h-32 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:scale-[1.02] transition-all cursor-pointer group">
-                <div className="p-3 rounded-full bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
-                  <LayoutDashboard className="h-6 w-6 text-blue-300" />
+          <div className="glass-panel rounded-[2.5rem] p-6 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-indigo-500/15 border border-indigo-500/20">
+                  <CalendarIcon className="h-5 w-5 text-indigo-300" />
                 </div>
-                <span className="text-sm font-medium text-white/80">Tasks</span>
-              </div>
-            </Link>
-            <Link href="/scheduler" className="col-span-1">
-              <div className="glass-panel rounded-[2rem] p-4 h-32 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:scale-[1.02] transition-all cursor-pointer group">
-                <div className="p-3 rounded-full bg-pink-500/20 group-hover:bg-pink-500/30 transition-colors">
-                  <CalendarIcon className="h-6 w-6 text-pink-300" />
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-0.5">
+                    Upcoming
+                  </h3>
+                  <p className="text-sm text-white/50">Next few days</p>
                 </div>
-                <span className="text-sm font-medium text-white/80">
-                  Calendar
-                </span>
               </div>
-            </Link>
-            <Link href="/chat" className="col-span-1">
-              <div className="glass-panel rounded-[2rem] p-4 h-32 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:scale-[1.02] transition-all cursor-pointer group">
-                <div className="p-3 rounded-full bg-purple-500/20 group-hover:bg-purple-500/30 transition-colors">
-                  <Users className="h-6 w-6 text-purple-300" />
+              <Link href="/scheduler">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white/50 hover:text-white hover:bg-white/10 rounded-full"
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="space-y-3 flex-1">
+              {upcomingEvents.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center text-white/60 gap-3">
+                  <div className="p-4 rounded-full bg-white/5 border border-white/5">
+                    <CalendarIcon className="h-7 w-7 opacity-50" />
+                  </div>
+                  <p className="text-sm">Nothing scheduled ahead.</p>
                 </div>
-                <span className="text-sm font-medium text-white/80">
-                  Groups
-                </span>
-              </div>
-            </Link>
-            <Link href="/settings" className="col-span-1">
-              <div className="glass-panel rounded-[2rem] p-4 h-32 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:scale-[1.02] transition-all cursor-pointer group">
-                <div className="p-3 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
-                  <Settings className="h-6 w-6 text-white/70" />
-                </div>
-                <span className="text-sm font-medium text-white/80">
-                  Settings
-                </span>
-              </div>
-            </Link>
+              ) : (
+                upcomingEvents.map((event) => {
+                  const start = parseISO(event.startTime);
+                  const dayLabel = isTomorrow(start)
+                    ? "Tomorrow"
+                    : format(start, "EEEE");
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3 transition-colors hover:bg-white/10"
+                    >
+                      <div className="flex w-14 shrink-0 flex-col items-center rounded-xl border border-white/5 bg-white/5 py-1.5">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-white/50">
+                          {format(start, "MMM")}
+                        </span>
+                        <span className="text-lg font-bold leading-none text-white">
+                          {format(start, "d")}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-white">
+                          {event.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-white/50">
+                          {dayLabel} · {format(start, "h:mm a")}
+                        </p>
+                      </div>
+                      <div className="h-2 w-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]" />
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </motion.div>
       </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10 pb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
+        {[
+          { href: "/tasks", label: "Tasks", icon: LayoutDashboard, tint: "bg-blue-500/20 group-hover:bg-blue-500/30", color: "text-blue-300" },
+          { href: "/scheduler", label: "Calendar", icon: CalendarIcon, tint: "bg-pink-500/20 group-hover:bg-pink-500/30", color: "text-pink-300" },
+          { href: "/chat", label: "Groups", icon: Users, tint: "bg-purple-500/20 group-hover:bg-purple-500/30", color: "text-purple-300" },
+          { href: "/settings", label: "Settings", icon: Settings, tint: "bg-white/10 group-hover:bg-white/20", color: "text-white/70" },
+        ].map(({ href, label, icon: Icon, tint, color }) => (
+          <Link key={href} href={href}>
+            <div className="glass-panel rounded-[2rem] p-4 h-28 flex flex-col items-center justify-center gap-3 hover:bg-white/10 hover:scale-[1.02] transition-all cursor-pointer group">
+              <div className={`p-3 rounded-full transition-colors ${tint}`}>
+                <Icon className={`h-6 w-6 ${color}`} />
+              </div>
+              <span className="text-sm font-medium text-white/80">{label}</span>
+            </div>
+          </Link>
+        ))}
+      </motion.div>
     </div>
   );
 }
