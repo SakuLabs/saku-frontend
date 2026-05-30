@@ -9,7 +9,7 @@ import { ChatMessages } from '@/components/chat-messages';
 import { ChatInput } from '@/components/chat-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Users, Search, MessageSquare, UserPlus, Copy, Check, Bell, User } from 'lucide-react';
+import { Plus, Users, Search, MessageSquare, UserPlus, Copy, Check, Bell, User, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -287,12 +287,15 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
     : selectedFriend?.name;
 
   return (
-    <div className="h-[calc(100vh-2rem)] flex gap-4 p-4 overflow-hidden">
-      {/* Sidebar */}
+    <div className="h-[calc(100dvh-6.5rem)] md:h-[calc(100vh-5rem)] flex gap-0 md:gap-4 p-0 md:p-4 overflow-hidden">
+      {/* Conversation list — full-width on mobile, fixed rail on desktop. Hidden on mobile once a chat is open. */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="w-80 flex flex-col bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl shadow-sm overflow-hidden"
+        className={cn(
+          "w-full md:w-80 flex-col bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl shadow-sm overflow-hidden",
+          selectedConversationId ? "hidden md:flex" : "flex"
+        )}
       >
         {/* User Code Section */}
         <div className="p-4 border-b border-border/40 space-y-3 shrink-0">
@@ -585,21 +588,33 @@ export function ChatSystem({ userId, userCode, userName }: ChatSystemProps) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
-        className="flex-1 flex flex-col bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl shadow-sm overflow-hidden relative"
+        className={cn(
+          "flex-1 flex-col bg-background/60 backdrop-blur-xl border border-border/40 rounded-2xl shadow-sm overflow-hidden relative",
+          selectedConversationId ? "flex" : "hidden md:flex"
+        )}
       >
         {activeName ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 px-6 border-b border-border/40 flex items-center justify-between bg-background/40 backdrop-blur-md">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border border-border/50">
+            <div className="h-16 px-4 md:px-6 border-b border-border/40 flex items-center justify-between bg-background/40 backdrop-blur-md">
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden -ml-1 h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => setSelectedConversationId(null)}
+                  aria-label="Back to conversations"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Avatar className="h-10 w-10 border border-border/50 shrink-0">
                   <AvatarImage src={selectedConversationType === 'direct' ? selectedFriend?.avatarUrl : undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {activeName.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-semibold text-lg leading-none">{activeName}</h3>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-lg leading-none truncate">{activeName}</h3>
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                     {selectedConversationType === 'group' ? (
                       <>

@@ -75,11 +75,11 @@ export default function SettingsPage() {
       <div className="absolute top-0 left-[6%] w-[560px] h-[560px] rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute top-[12%] right-[2%] w-[440px] h-[440px] rounded-full blur-[150px] pointer-events-none" />
 
-      <div className="container max-w-6xl py-6 lg:py-10 space-y-8 relative z-10">
+      <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 space-y-6 sm:space-y-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-md">Settings</h1>
-          <p className="text-white/60 text-lg">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">Settings</h1>
+          <p className="text-white/60 text-base sm:text-lg">
             Manage your account preferences and customize your experience.
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function SettingsPage() {
               role="tablist"
               aria-label="Settings sections"
               aria-orientation="vertical"
-              className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-2 overflow-x-auto pb-2 lg:pb-0"
+              className="flex flex-wrap gap-2 lg:flex-col lg:flex-nowrap"
             >
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
@@ -107,7 +107,7 @@ export default function SettingsPage() {
                     aria-controls={`panel-${item.id}`}
                     onClick={() => setActiveTab(item.id)}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-2xl transition-colors duration-300 relative overflow-hidden group whitespace-nowrap',
+                      'flex shrink-0 items-center gap-3 px-4 py-3 text-sm font-medium rounded-2xl transition-colors duration-300 relative overflow-hidden group whitespace-nowrap',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
                       isActive
                         ? 'text-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-white/10'
@@ -149,19 +149,19 @@ export default function SettingsPage() {
                 className="space-y-6"
               >
                 {activeTab === 'profile' && (
-                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] p-8 space-y-8 relative overflow-hidden">
+                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] px-0 py-6 sm:p-8 space-y-6 sm:space-y-8 relative overflow-hidden">
                     <div className="space-y-2 relative z-10">
                       <h2 className="text-2xl font-bold text-white">Public Profile</h2>
                       <p className="text-white/50">This is how others will see you on the site.</p>
                     </div>
 
-                    <div className="flex items-center gap-8 relative z-10">
+                    <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8 relative z-10">
                       <button
                         type="button"
                         aria-label="Change avatar"
                         className="relative rounded-full group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                       >
-                        <Avatar className="h-28 w-28 border-4 border-white/10 shadow-2xl ring-4 ring-black/20">
+                        <Avatar className="h-20 w-20 sm:h-28 sm:w-28 border-4 border-white/10 shadow-2xl ring-4 ring-black/20">
                           <AvatarImage src="/avatars/01.png" alt="" />
                           <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                             {user?.name?.[0]?.toUpperCase() || 'U'}
@@ -227,7 +227,7 @@ export default function SettingsPage() {
                 )}
 
                 {activeTab === 'account' && (
-                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] p-8 space-y-8">
+                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] px-0 py-6 sm:p-8 space-y-6 sm:space-y-8">
                     <div className="space-y-2">
                       <h2 className="text-2xl font-bold text-white">Account Settings</h2>
                       <p className="text-white/50">
@@ -261,8 +261,8 @@ export default function SettingsPage() {
                         <Shield className="h-5 w-5 text-red-400" />
                         Danger Zone
                       </h3>
-                      <div className="border border-red-500/20 rounded-2xl p-6 bg-red-500/5 backdrop-blur-sm">
-                        <div className="flex items-center justify-between gap-4">
+                      <div className="border border-red-500/20 rounded-2xl p-4 sm:p-6 bg-red-500/5 backdrop-blur-sm">
+                        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                           <div className="space-y-1">
                             <p className="font-medium text-red-400">Delete account</p>
                             <p className="text-sm text-red-200/60">
@@ -305,8 +305,8 @@ export default function SettingsPage() {
                         </div>
                       </div>
 
-                      <div className="border border-white/10 rounded-2xl p-6 bg-white/5">
-                        <div className="flex items-center justify-between gap-4">
+                      <div className="border border-white/10 rounded-2xl p-4 sm:p-6 bg-white/5">
+                        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                           <div className="space-y-1">
                             <p className="font-medium text-white">Sign out</p>
                             <p className="text-sm text-white/50">
@@ -329,7 +329,7 @@ export default function SettingsPage() {
                 )}
 
                 {activeTab === 'appearance' && (
-                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] p-8 space-y-8">
+                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] px-0 py-6 sm:p-8 space-y-6 sm:space-y-8">
                     <div className="space-y-2">
                       <h2 className="text-2xl font-bold text-white">Appearance</h2>
                       <p className="text-white/50">
@@ -389,7 +389,7 @@ export default function SettingsPage() {
                 )}
 
                 {activeTab === 'notifications' && (
-                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] p-8 space-y-8">
+                  <div className="bg-transparent backdrop-blur-none border-transparent shadow-none rounded-[2.5rem] px-0 py-6 sm:p-8 space-y-6 sm:space-y-8">
                     <div className="space-y-2">
                       <h2 className="text-2xl font-bold text-white">Notifications</h2>
                       <p className="text-white/50">Configure how you receive alerts and updates.</p>

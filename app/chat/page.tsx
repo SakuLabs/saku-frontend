@@ -52,7 +52,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="space-y-8 relative min-h-screen">
+    <div className="relative">
       {/* Ambient Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
