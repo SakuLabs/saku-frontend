@@ -22,9 +22,6 @@ import {
   MessageSquare,
   Settings,
   LogOut,
-  PanelLeft,
-  PanelLeftClose,
-  PanelLeftOpen,
   LayoutDashboard,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -41,11 +38,22 @@ const navItems = [
 ];
 
 // Export a wrapper that can be used in layout.tsx to get the sidebar and content area
+// Shared selected/idle vocabulary so nav + footer read the same brand accent
+const ACTIVE_ITEM =
+  "bg-indigo-500/15 text-white shadow-[0_0_20px_rgba(99,102,241,0.25)] border border-indigo-400/30 backdrop-blur-md";
+const IDLE_ITEM =
+  "hover:bg-white/5 hover:text-white text-white/60 hover:backdrop-blur-sm";
+
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
-  const { toggleSidebar, open } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const { logout, user } = useAuth();
   const reduceMotion = useReducedMotion();
+
+  // Close the off-canvas sheet after navigating on mobile
+  const closeOnMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   if (pathname === '/login' || pathname === '/register' || pathname === '/') {
     return <main className="h-screen w-full bg-background overflow-auto">{children}</main>;
@@ -108,13 +116,11 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                         size="lg"
                         className={`
                           transition-all duration-300 ease-out rounded-xl
-                          group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-12 group-data-[collapsible=icon]:!p-3 group-data-[collapsible=icon]:mx-auto
-                          ${isActive 
-                            ? "bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)] border border-white/20 backdrop-blur-md" 
-                            : "hover:bg-white/5 hover:text-white text-white/60 hover:backdrop-blur-sm"}
+                          group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:mx-auto
+                          ${isActive ? ACTIVE_ITEM : IDLE_ITEM}
                         `}
                       >
-                        <Link href={item.href} className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+                        <Link href={item.href} onClick={closeOnMobile} className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
                           <Icon className={`${isActive ? "text-white" : "text-white/60 group-hover:text-white"} h-5 w-5 shrink-0 transition-colors`} />
                           <span className="font-medium text-base whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:max-w-0 max-w-[200px]">{item.label}</span>
                         </Link>
@@ -133,7 +139,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-4 px-2 py-2 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
                   <Avatar className="h-10 w-10 shrink-0 border-2 border-white/10 shadow-lg">
                     <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback className="bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-xs">
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-bold text-xs">
                       {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -150,9 +156,9 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                 tooltip="Settings"
                 isActive={pathname === '/settings'}
                 size="lg"
-                className="rounded-xl hover:bg-white/5 hover:text-white text-white/60 transition-all duration-300 group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:mx-auto"
+                className={`rounded-xl transition-all duration-300 group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:mx-auto ${pathname === '/settings' ? ACTIVE_ITEM : IDLE_ITEM}`}
               >
-                <Link href="/settings" className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
+                <Link href="/settings" onClick={closeOnMobile} className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center">
                   <Settings className="h-5 w-5 shrink-0" />
                   <span className="font-medium text-base whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:max-w-0 max-w-[200px]">Settings</span>
                 </Link>
@@ -163,7 +169,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                 tooltip="Logout"
                 size="lg"
                 onClick={logout}
-                className="rounded-xl hover:bg-red-500/10 hover:text-red-400 text-white/60 transition-all duration-300 group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-10 group-data-[collapsible=icon]:!p-2 group-data-[collapsible=icon]:mx-auto"
+                className="rounded-xl hover:bg-red-500/10 hover:text-red-400 text-white/60 transition-all duration-300 group-data-[collapsible=icon]:!rounded-full group-data-[collapsible=icon]:!size-11 group-data-[collapsible=icon]:!p-2.5 group-data-[collapsible=icon]:mx-auto"
               >
                 <div className="flex items-center gap-4 transition-all duration-300 ease-in-out group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center w-full">
                   <LogOut className="h-5 w-5 shrink-0" />
@@ -175,8 +181,13 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-transparent z-10">
+        {/* Mobile-only floating toggle — the only way to reach the off-canvas nav on small screens */}
+        <SidebarTrigger
+          aria-label="Open navigation"
+          className="md:hidden fixed left-6 top-[max(1rem,env(safe-area-inset-top))] z-30 h-10 w-10 rounded-xl glass-button text-white/80 hover:text-white"
+        />
         <div className="flex-1 overflow-auto scroll-smooth">
-          <div className="p-6 md:p-10 max-w-7xl mx-auto">{children}</div>
+          <div className="p-6 pt-20 md:p-10 max-w-7xl mx-auto">{children}</div>
         </div>
       </main>
     </div>

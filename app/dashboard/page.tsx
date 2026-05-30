@@ -161,9 +161,9 @@ export default function DashboardPage() {
             <Skeleton className="h-14 w-14 rounded-full bg-white/10" />
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-36 rounded-[2rem] bg-white/5" />
+            <Skeleton key={i} className="h-32 md:h-36 rounded-[2rem] bg-white/5" />
           ))}
         </div>
         <div className="grid gap-6 lg:grid-cols-7">
@@ -175,19 +175,19 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-6 md:space-y-8 relative">
       {/* Ambient Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between relative z-10">
-        <div className="space-y-2">
+      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between relative z-30">
+        <div className="space-y-3 flex-1 min-w-0 order-2 md:order-1">
           <div className="flex items-center gap-2 text-white/60 text-sm font-medium uppercase tracking-wider">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span>Online Status</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-lg min-h-[60px] flex items-center flex-wrap gap-x-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-lg min-h-[44px] sm:min-h-[60px] flex items-center flex-wrap gap-x-2">
             <TypewriterEffect
               words={[
                 "Hi,",
@@ -219,12 +219,12 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="glass-panel px-4 py-2 rounded-2xl flex flex-col items-end">
-            <span className="text-xs text-white/50 font-medium uppercase tracking-wider">
-              {format(new Date(), "EEEE")}
+        <div className="fixed top-[max(1rem,env(safe-area-inset-top))] right-6 z-30 flex items-center gap-2 md:static md:top-auto md:right-auto md:z-10 md:gap-4 shrink-0 md:order-2">
+          <div className="bg-white/5 border border-white/10 backdrop-blur-md px-3 py-1.5 md:px-4 md:py-2 rounded-2xl flex flex-col items-end">
+            <span className="text-[10px] md:text-xs font-medium uppercase tracking-[0.18em] text-white/45 leading-none">
+              {format(new Date(), "EEE")}
             </span>
-            <span className="text-2xl font-bold text-white">
+            <span className="text-sm md:text-2xl font-semibold md:font-bold text-white tabular-nums leading-tight mt-0.5 md:mt-0">
               {format(new Date(), "d MMM")}
             </span>
           </div>
@@ -233,7 +233,7 @@ export default function DashboardPage() {
             aria-label="Account settings"
             className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           >
-            <Avatar className="h-14 w-14 border-2 border-white/20 shadow-xl ring-2 ring-white/10 transition-transform hover:scale-105">
+            <Avatar className="h-10 w-10 md:h-14 md:w-14 border-2 border-white/20 shadow-xl ring-2 ring-white/10 transition-transform hover:scale-105">
               <AvatarImage src={user?.avatarUrl} />
               <AvatarFallback className="bg-black/40 backdrop-blur-md text-white">
                 {user?.name?.charAt(0) || "U"}
@@ -247,10 +247,10 @@ export default function DashboardPage() {
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 relative z-10"
+        className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4 relative z-10"
       >
         <motion.div variants={item}>
-          <div className="glass-card rounded-[2rem] p-6 relative overflow-hidden group">
+          <div className="glass-card rounded-[2rem] p-5 md:p-6 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
               <Target className="h-6 w-6 text-blue-300" />
             </div>
@@ -258,7 +258,7 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-white/60 uppercase tracking-wide">
                 Total Tasks
               </p>
-              <div className="text-4xl font-bold text-white tracking-tight">
+              <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                 {stats.totalTasks}
               </div>
             </div>
@@ -283,7 +283,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <div className="glass-card rounded-[2rem] p-6 relative overflow-hidden group">
+          <div className="glass-card rounded-[2rem] p-5 md:p-6 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
               <CheckCircle2 className="h-6 w-6 text-green-300" />
             </div>
@@ -291,7 +291,7 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-white/60 uppercase tracking-wide">
                 Completed
               </p>
-              <div className="text-4xl font-bold text-white tracking-tight">
+              <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                 {stats.completedTasks}
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <div className="glass-card rounded-[2rem] p-6 relative overflow-hidden group">
+          <div className="glass-card rounded-[2rem] p-5 md:p-6 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
               <Zap className="h-6 w-6 text-amber-300" />
             </div>
@@ -311,7 +311,7 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-white/60 uppercase tracking-wide">
                 In Progress
               </p>
-              <div className="text-4xl font-bold text-white tracking-tight">
+              <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                 {stats.inProgressTasks}
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function DashboardPage() {
         </motion.div>
 
         <motion.div variants={item}>
-          <div className="glass-card rounded-[2rem] p-6 relative overflow-hidden group">
+          <div className="glass-card rounded-[2rem] p-5 md:p-6 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
               <Users className="h-6 w-6 text-purple-300" />
             </div>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
               <p className="text-sm font-medium text-white/60 uppercase tracking-wide">
                 Study Groups
               </p>
-              <div className="text-4xl font-bold text-white tracking-tight">
+              <div className="text-3xl md:text-4xl font-bold text-white tracking-tight">
                 {groups.length}
               </div>
             </div>
@@ -360,15 +360,15 @@ export default function DashboardPage() {
         </motion.div>
       </motion.div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10">
         {/* Progress Chart */}
         <motion.div
-          className="col-span-4 lg:col-span-3 h-full"
+          className="lg:col-span-3 h-full"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="glass-panel rounded-[2.5rem] p-6 h-full flex flex-col justify-between">
+          <div className="glass-panel rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 h-full flex flex-col justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-white mb-1">
                 Productivity Pulse
@@ -376,17 +376,17 @@ export default function DashboardPage() {
               <p className="text-sm text-white/50">Your daily task momentum</p>
             </div>
 
-            <div className="flex-1 flex items-center justify-center py-4">
+            <div className="flex-1 flex items-center justify-center py-1 md:py-4">
               <ChartContainer
                 config={chartConfig}
-                className="mx-auto aspect-square w-full max-w-[250px]"
+                className="mx-auto aspect-square w-full max-w-[180px] sm:max-w-[250px]"
               >
                 <RadialBarChart
                   data={chartData}
                   startAngle={-90}
                   endAngle={270}
-                  innerRadius={80}
-                  outerRadius={110}
+                  innerRadius="64%"
+                  outerRadius="88%"
                 >
                   <PolarGrid
                     gridType="circle"
@@ -466,13 +466,13 @@ export default function DashboardPage() {
 
         {/* Today's Schedule */}
         <motion.div
-          className="col-span-4 h-full"
+          className="lg:col-span-4 h-full"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="glass-panel rounded-[2.5rem] p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
+          <div className="glass-panel rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-6 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-4 md:mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5 text-pink-300" />
@@ -534,10 +534,10 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-7 relative z-10">
         {/* Urgent Tasks */}
         <motion.div
-          className="col-span-4 lg:col-span-4"
+          className="lg:col-span-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -620,7 +620,7 @@ export default function DashboardPage() {
 
         {/* Upcoming Events */}
         <motion.div
-          className="col-span-4 lg:col-span-3"
+          className="lg:col-span-3"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -696,7 +696,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <motion.div
-        className="grid grid-cols-2 md:grid-cols-4 gap-6 relative z-10 pb-8"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 relative z-10 pb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
