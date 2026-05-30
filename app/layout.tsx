@@ -7,8 +7,7 @@ import { SidebarLayout } from "@/components/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthGuard } from "@/components/auth-guard";
 import { AuthProvider } from "@/components/auth-provider";
-import { FloatingChat } from "@/components/floating-chat";
-import { FloatingAssistant } from "@/components/floating-assistant";
+import { FloatingWidgets } from "@/components/floating-widgets";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +23,7 @@ export const metadata: Metadata = {
   title: "Saku - Academic Dashboard",
   description:
     "Manage your academic tasks, schedule, and study groups with Saku",
-  icons: { icon: "/logo.png" },
+  icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({
@@ -44,8 +43,7 @@ export default function RootLayout({
             </AuthGuard>
           </SidebarProvider>
           <Toaster richColors position="top-right" />
-          <FloatingChat />
-          <FloatingAssistant />
+          <FloatingWidgets />
         </AuthProvider>
       </body>
     </html>

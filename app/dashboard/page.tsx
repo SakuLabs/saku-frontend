@@ -35,16 +35,22 @@ import {
 import Link from "next/link";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  RadialBar,
-  RadialBarChart,
-  Label,
-  PolarRadiusAxis,
-  PolarGrid,
-  PolarAngleAxis,
-} from "recharts";
-import { ChartConfig, ChartContainer } from "@/components/ui/chart";
+import dynamic from "next/dynamic";
 import { TypewriterEffect } from "@/components/ui/typewriter-effect";
+
+// Recharts is heavy — load the chart only on the client, after first paint.
+const ProductivityChart = dynamic(
+  () =>
+    import("@/components/dashboard/productivity-chart").then(
+      (m) => m.ProductivityChart,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mx-auto aspect-square w-full max-w-[180px] sm:max-w-[250px] animate-pulse rounded-full bg-white/5" />
+    ),
+  },
+);
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -77,16 +83,6 @@ export default function DashboardPage() {
       completionRate,
     };
   }, [tasks, schedules]);
-
-  // Chart Data for Radial Bar (Completion)
-  const chartData = useMemo(
-    () => [{ name: "completion", rate: stats.completionRate }],
-    [stats.completionRate],
-  );
-
-  const chartConfig = {
-    rate: { label: "Completion" },
-  } satisfies ChartConfig;
 
   // Get today's schedule
   const todaySchedule = useMemo(() => {
@@ -380,79 +376,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex-1 flex items-center justify-center py-1 md:py-4">
-              <ChartContainer
-                config={chartConfig}
-                className="mx-auto aspect-square w-full max-w-[180px] sm:max-w-[250px]"
-              >
-                <RadialBarChart
-                  data={chartData}
-                  startAngle={-90}
-                  endAngle={270}
-                  innerRadius="64%"
-                  outerRadius="88%"
-                >
-                  <PolarGrid
-                    gridType="circle"
-                    radialLines={false}
-                    stroke="none"
-                    className="first:fill-white/5 last:fill-transparent"
-                    polarRadius={[86, 74]}
-                  />
-                  <PolarAngleAxis
-                    type="number"
-                    domain={[0, 100]}
-                    dataKey="rate"
-                    tick={false}
-                  />
-                  <RadialBar
-                    dataKey="rate"
-                    background={{ fill: "rgba(255, 255, 255, 0.05)" }}
-                    cornerRadius={10}
-                    fill="url(#productivity-gradient)"
-                  />
-                  <defs>
-                    <linearGradient id="productivity-gradient" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#818cf8" />
-                      <stop offset="100%" stopColor="#c084fc" />
-                    </linearGradient>
-                  </defs>
-                  <PolarRadiusAxis
-                    tick={false}
-                    tickLine={false}
-                    axisLine={false}
-                  >
-                    <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                          return (
-                            <text
-                              x={viewBox.cx}
-                              y={viewBox.cy}
-                              textAnchor="middle"
-                              dominantBaseline="middle"
-                            >
-                              <tspan
-                                x={viewBox.cx}
-                                y={viewBox.cy}
-                                className="fill-white text-4xl font-bold"
-                              >
-                                {stats.completionRate}%
-                              </tspan>
-                              <tspan
-                                x={viewBox.cx}
-                                y={(viewBox.cy || 0) + 24}
-                                className="fill-white/50 text-xs uppercase tracking-widest"
-                              >
-                                Efficiency
-                              </tspan>
-                            </text>
-                          );
-                        }
-                      }}
-                    />
-                  </PolarRadiusAxis>
-                </RadialBarChart>
-              </ChartContainer>
+              <ProductivityChart completionRate={stats.completionRate} />
             </div>
 
             <div className="text-center">

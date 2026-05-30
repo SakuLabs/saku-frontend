@@ -27,7 +27,7 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useReducedMotion } from "framer-motion";
+import { useHeavyAnimation } from "@/hooks/use-heavy-animation";
 import { Component as EtherealShadow } from "@/components/ui/etheral-shadow";
 
 const navItems = [
@@ -48,7 +48,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const { logout, user } = useAuth();
-  const reduceMotion = useReducedMotion();
+  const animateShadow = useHeavyAnimation();
 
   // Close the off-canvas sheet after navigating on mobile
   const closeOnMobile = () => {
@@ -63,7 +63,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen w-full relative overflow-hidden">
       {/* Ethereal shadow background — drifts behind the whole app shell */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        {!reduceMotion && (
+        {animateShadow && (
           <EtherealShadow
             color="rgba(99, 102, 241, 1)"
             animation={{ scale: 100, speed: 75 }}

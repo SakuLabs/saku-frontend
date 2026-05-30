@@ -7,6 +7,7 @@
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { Component as EtherealShadow } from "@/components/ui/etheral-shadow";
+import { useHeavyAnimation } from "@/hooks/use-heavy-animation";
 
 export function AuthShell({
   heading,
@@ -20,12 +21,13 @@ export function AuthShell({
   footer: React.ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
+  const animateShadow = useHeavyAnimation();
 
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-10">
       {/* Ethereal shadow background — indigo-tinted, drifting */}
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        {!reduceMotion && (
+        {animateShadow && (
           <EtherealShadow
             color="rgba(99, 102, 241, 1)"
             animation={{ scale: 100, speed: 90 }}
