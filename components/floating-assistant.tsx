@@ -30,15 +30,15 @@ const SUGGESTIONS = [
 
 // Rotating "thinking" labels, Claude-style.
 const THINKING_STATUSES = [
-  'Berpikir',
-  'Meracik rencana',
-  'Menghitung',
-  'Menyusun jadwal',
-  'Menelaah tugasmu',
-  'Mikir keras',
-  'Menggali ide',
-  'Menyetel waktu',
-  'Merapikan agenda',
+  'Thinking',
+  'Cooking',
+  'Crunching',
+  'Pondering',
+  'Scheming',
+  'Plotting your schedule',
+  'Connecting the dots',
+  'Conjuring',
+  'Locking in',
   'Gooning',
 ];
 
