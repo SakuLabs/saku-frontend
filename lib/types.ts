@@ -236,3 +236,43 @@ export interface SearchUsersRequest {
   name?: string;
   id?: string;
 }
+
+// AI Agent Types
+export type AgentRole = 'user' | 'assistant' | 'tool';
+
+export interface AgentToolCall {
+  id?: string;
+  function: { name: string; arguments: string };
+}
+
+// One stored turn as returned by GET /agent/conversations/:id/messages
+export interface AgentMessage {
+  role: AgentRole;
+  content: string | null;
+  toolCalls?: AgentToolCall[];
+  toolCallId?: string;
+}
+
+export interface AgentAction {
+  tool: string;
+  ok: boolean;
+}
+
+export interface AgentChatResponse {
+  conversationId: string;
+  reply: string;
+  actions: AgentAction[];
+}
+
+export interface AgentConversation {
+  id: string;
+  userId: string;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatAgentRequest {
+  content: string;
+  conversationId?: string;
+}

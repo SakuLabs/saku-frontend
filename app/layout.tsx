@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthGuard } from "@/components/auth-guard";
 import { AuthProvider } from "@/components/auth-provider";
 import { FloatingChat } from "@/components/floating-chat";
+import { FloatingAssistant } from "@/components/floating-assistant";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
           </SidebarProvider>
           <Toaster richColors position="top-right" />
           <FloatingChat />
+          <FloatingAssistant />
         </AuthProvider>
       </body>
     </html>
