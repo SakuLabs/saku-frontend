@@ -79,25 +79,25 @@ export function Scheduler({ userId }: SchedulerProps) {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-4 p-4 sm:gap-6 sm:p-6 lg:h-[calc(100vh-4rem)]">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Schedule</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Schedule</h2>
           <p className="text-muted-foreground">Manage your time and upcoming assignments.</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full md:w-auto">
             <TabsList className="grid w-full grid-cols-3 md:w-[360px]">
-              <TabsTrigger value="calendar" className="gap-2">
-                <CalendarIcon className="w-4 h-4" /> Calendar
+              <TabsTrigger value="calendar" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
+                <CalendarIcon className="w-4 h-4 shrink-0" /> Calendar
               </TabsTrigger>
-              <TabsTrigger value="daily" className="gap-2">
-                <Clock className="w-4 h-4" /> Daily
+              <TabsTrigger value="daily" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
+                <Clock className="w-4 h-4 shrink-0" /> Daily
               </TabsTrigger>
-              <TabsTrigger value="timeline" className="gap-2">
-                <LayoutList className="w-4 h-4" /> Timeline
+              <TabsTrigger value="timeline" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
+                <LayoutList className="w-4 h-4 shrink-0" /> Timeline
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -126,9 +126,9 @@ export function Scheduler({ userId }: SchedulerProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:h-full lg:min-h-0">
         {/* Main Content Area */}
-        <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
+        <div className="lg:col-span-8 flex flex-col gap-4 min-h-0 h-[60vh] lg:h-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
@@ -140,7 +140,7 @@ export function Scheduler({ userId }: SchedulerProps) {
             >
               {activeView === 'calendar' && (
                 <Card className="h-full border-none shadow-md bg-card/50 backdrop-blur-sm">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 sm:p-6 h-full overflow-y-auto">
                     <CalendarView
                       tasks={tasks}
                       onDateSelect={(date) => {
@@ -155,7 +155,7 @@ export function Scheduler({ userId }: SchedulerProps) {
 
               {activeView === 'daily' && (
                 <div className="h-full overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
-                  <div className="p-6 h-full overflow-hidden">
+                  <div className="p-4 sm:p-6 h-full overflow-hidden">
                     <DailySchedule
                       slots={schedules
                         .filter(s => isSameDay(new Date(s.startTime), selectedDate))
@@ -194,9 +194,9 @@ export function Scheduler({ userId }: SchedulerProps) {
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-4 flex flex-col gap-6 min-h-0">
+        <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-6 min-h-0">
           {/* Today's Focus */}
-          <Card className="flex-1 min-h-0 flex flex-col border-none shadow-md bg-gradient-to-br from-card to-muted/20">
+          <Card className="h-[420px] lg:h-auto lg:flex-1 min-h-0 flex flex-col border-none shadow-md bg-gradient-to-br from-card to-muted/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ListTodo className="w-5 h-5 text-primary" />
@@ -205,7 +205,7 @@ export function Scheduler({ userId }: SchedulerProps) {
               <CardDescription>Deadlines approaching soon</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 overflow-hidden p-0">
-              <ScrollArea className="h-full px-6 pb-6">
+              <ScrollArea className="h-full px-4 pb-4 sm:px-6 sm:pb-6">
                 <div className="space-y-3">
                   {upNext.length > 0 ? (
                     upNext.map((item, i) => (
