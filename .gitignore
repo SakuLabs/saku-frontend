@@ -11,3 +11,6 @@ node_modules/
 
 .env
 *.md
+# Generated build artifacts
+next-env.d.ts
+*.tsbuildinfo
