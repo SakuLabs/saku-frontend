@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '@/lib/api-client';
 import { API_CONFIG } from '@/lib/api-config';
+import { emitDataChange } from '@/lib/data-events';
 import type {
   AgentAction,
   AgentChatResponse,
@@ -112,6 +113,14 @@ export function useAgent(): UseAgentReturn {
             actions: res.actions?.length ? res.actions : undefined,
           },
         ]);
+        // The agent mutates tasks/schedules on the backend directly, in a
+        // separate hook instance from the list views. Refetch both so AI
+        // changes show up without a reload. We do this on every reply rather
+        // than inspecting res.actions, because the backend doesn't always
+        // populate actions even when it created something (the reply text may
+        // be the only signal). Two cheap GETs per turn keeps it correct.
+        emitDataChange('tasks');
+        emitDataChange('schedules');
         // Title may have been generated on the first turn.
         void refreshConversations();
       } catch (err) {

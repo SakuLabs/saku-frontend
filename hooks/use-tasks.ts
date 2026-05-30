@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient, getToken } from '@/lib/api-client';
 import { API_CONFIG } from '@/lib/api-config';
+import { onDataChange } from '@/lib/data-events';
 import type { Task, TaskStatus, RawTask, CreateTaskRequest, UpdateTaskStatusRequest, UpdateTaskProgressRequest } from '@/lib/types';
 import { normalizeTask } from '@/lib/types';
 
@@ -45,6 +46,14 @@ export function useTasks(): UseTasksReturn {
   useEffect(() => {
     refreshTasks();
   }, [refreshTasks]);
+
+  // Refetch when the AI agent (or any other source) reports a task change.
+  useEffect(
+    () => onDataChange((domain) => {
+      if (domain === 'tasks') refreshTasks();
+    }),
+    [refreshTasks],
+  );
 
   const createTask = useCallback(async (taskData: CreateTaskRequest) => {
     try {
