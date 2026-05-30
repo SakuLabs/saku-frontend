@@ -1,228 +1,148 @@
-# Saku - Academic Task Management Dashboard
+<div align="center">
 
-A modern, dark-themed academic task management dashboard built with Next.js, shadcn/ui, and Framer Motion. Designed for students and educators to manage tasks, schedules, and collaborate through study groups.
+<img src="public/logo.png" alt="Saku" width="88" />
+
+# Saku
+
+**An academic command center for students.** Tasks, schedules, study groups, and an AI assistant that actually does the work, wrapped in a dark, glassmorphic interface.
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-radix-111?logo=radixui&logoColor=white)](https://ui.shadcn.com)
+
+</div>
+
+---
+
+## Overview
+
+Saku is the web client for the Saku platform. It is a **client only Next.js app** that talks to a separate NestJS backend ([`saku-backend`](../saku-backend)) over a JSON API. Auth is JWT based, stored in `localStorage` and attached to every request by an axios interceptor.
+
+Think of it as the surface where a student plans the week, watches deadlines close in, chats with study groups, and hands busywork to an AI agent that can create tasks and schedules on their behalf.
 
 ## Features
 
-### Task Management
+### Tasks
+- Full CRUD with priority (Low / Medium / High), status (To Do / In Progress / Done), and progress.
+- Board and list views, deadline tracking, overdue indicators.
 
-- Create, edit, and delete tasks with titles, descriptions, and due dates
-- Organize tasks by academic subjects (Math, CS, Biology, Physics, Chemistry, History)
-- Priority levels (Low, Medium, High) for task importance
-- Task status tracking (Pending, In Progress, Completed)
-- Task dependencies and blocker tracking
-- Collaboration features to assign tasks to other users
-- Real-time task statistics dashboard
+### Scheduler
+- **Calendar**, **Daily**, and **Timeline** views of events and deadlines.
+- Create events inline (type, importance, color, time range) with client side validation.
 
-### Scheduler & Calendar
+### Study Groups and DMs
+- Real time group and direct messaging over Socket.IO.
+- Conversation list, history, presence, unread badges.
 
-- **Month/Week Calendar View**: Visual representation of upcoming deadlines
-- **Daily Schedule View**: Hour-by-hour time slot management (7 AM - 7 PM)
-- **Timeline View**: Gantt-style deadline visualization with progress tracking
-- Drag-and-drop rescheduling support
-- Exam schedule management
-- Visual indicators for overdue tasks
+### Saku AI Assistant
+- A floating, agentic chat wired to the backend `/agent` module.
+- The agent uses tools to **read and mutate your real data**: it can list tasks, create schedules, check conflicts, and report what it did.
+- Conversation history, optimistic message bubbles, markdown replies, tool action chips, and rotating "thinking" statuses.
+- Kept deliberately separate from human chat: distinct identity, its own launcher bubble.
 
-### Study Groups & Chat
+### Dashboard
+- Stat cards, a productivity pulse radial, **Today's Flow**, an **Upcoming** schedule overview, and **Priority Focus** for deadlines inside 72 hours.
 
-- Real-time group discussion within study groups
-- Create and manage multiple study group chat rooms
-- Message history and persistence
-- Timestamp for all messages
-- Clean, modern chat interface with animations
-
-### Modern Design
-
-- Dark theme optimized for extended study sessions
-- Beautiful gradient primary color (Blue #3B82F6)
-- Cyan accent color for highlights
-- Smooth Framer Motion animations
-- Fully responsive design (Mobile, Tablet, Desktop)
-- Semantic design tokens for consistent theming
+### Craft
+- Dark glassmorphic surfaces over an animated **ethereal shadow** background.
+- Indigo accent system, motion that respects `prefers-reduced-motion`, skeleton loading, and accessible focus states.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **UI Components**: shadcn/ui
-- **Animations**: Framer Motion
-- **Database**: SQLite3 with better-sqlite3
-- **Styling**: Tailwind CSS
-- **Date Management**: date-fns
-- **Form Handling**: React Hook Form
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack dev) |
+| Language | TypeScript (strict) |
+| UI | React 19, shadcn/ui on Radix primitives |
+| Styling | Tailwind CSS v4, CSS variable design tokens |
+| Motion | Framer Motion |
+| Data | axios client against the NestJS API |
+| Realtime | Socket.IO client |
+| Charts | Recharts |
+| Forms | React Hook Form + Zod |
+| Markdown | react-markdown + remark-gfm |
+| Dates | date-fns |
+
+## Architecture
+
+```
+app/                 App Router routes (dashboard, tasks, scheduler, chat, settings, auth)
+components/
+  ui/                shadcn/ui primitives
+  *.tsx              feature components (sidebar, scheduler, floating-assistant, ...)
+hooks/               state + API per domain (use-auth, use-tasks, use-schedule, use-agent, ...)
+lib/
+  api-client.ts      axios instance with JWT interceptors
+  api-config.ts      every backend endpoint, in one place
+  types.ts           API types + backend->frontend normalizers
+public/              static assets
+```
+
+State lives in **custom hooks**, one per domain, each owning its own loading, error, and data. No Redux, no global store. The hook layer also **normalizes the backend contract** (for example numeric `priority` and `deadline` are mapped to the canonical frontend shape), so components stay clean.
 
 ## Getting Started
 
 ### Prerequisites
+- Node.js 18+
+- [Bun](https://bun.sh) (this repo ships a `bun.lock`; npm or pnpm also work)
+- The Saku backend running and reachable
 
-- Node.js 18+ and pnpm (or npm/yarn)
+### Setup
 
-### Installation
+```bash
+# 1. install
+bun install
 
-1. **Install dependencies**
+# 2. configure the API URL
+cp .env.example .env.local      # then edit if needed
 
-   ```bash
-   pnpm install
-   ```
-
-2. **Initialize the database**
-
-   ```bash
-   pnpm run init-db
-   ```
-
-3. **Seed demo data (optional)**
-
-   ```bash
-   pnpm run seed-db
-   ```
-
-4. **Start the development server**
-
-   ```bash
-   pnpm run dev
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Project Structure
-
-```
-├── app/
-│   ├── api/                 # API routes for tasks, chat, schedule
-│   │   ├── tasks/
-│   │   ├── chat/
-│   │   └── schedule/
-│   ├── layout.tsx           # Root layout with dark theme
-│   ├── page.tsx             # Main dashboard page
-│   └── globals.css          # Global styles and theme tokens
-├── components/
-│   ├── task-list.tsx        # Task list display with filtering
-│   ├── task-form.tsx        # Task creation/editing modal
-│   ├── task-management.tsx   # Task management section
-│   ├── calendar-view.tsx     # Calendar month view
-│   ├── daily-schedule.tsx    # Daily time slot view
-│   ├── timeline-view.tsx     # Gantt-style timeline
-│   ├── scheduler.tsx         # Scheduler container
-│   ├── chat-messages.tsx     # Message display
-│   ├── chat-input.tsx        # Message input
-│   ├── chat-system.tsx       # Chat system container
-│   └── navigation.tsx        # Main navigation bar
-├── hooks/
-│   ├── use-tasks.ts         # Task management hook
-│   ├── use-schedule.ts      # Schedule management hook
-│   └── use-chat.ts          # Chat management hook
-├── lib/
-│   └── db.ts                # Database utilities
-└── scripts/
-    ├── init-db.js           # Database initialization
-    └── seed-demo-data.js    # Demo data seeding
+# 3. run
+bun run dev                      # http://localhost:3000
 ```
 
-## API Endpoints
+> The app is useless without the backend. Start [`saku-backend`](../saku-backend) first.
 
-### Tasks
+### Scripts
 
-- `GET /api/tasks` - Get all tasks for a user
-- `POST /api/tasks` - Create a new task
-- `GET /api/tasks/[id]` - Get a specific task
-- `PUT /api/tasks/[id]` - Update a task
-- `DELETE /api/tasks/[id]` - Delete a task
+| Command | Does |
+|---|---|
+| `bun run dev` | Dev server with Turbopack |
+| `bun run build` | Production build |
+| `bun run start` | Serve the production build |
+| `bun run lint` | ESLint |
 
-### Chat
+## Environment
 
-- `GET /api/chat` - Get user's chat rooms
-- `POST /api/chat` - Create a new chat room
-- `GET /api/chat/messages` - Get messages from a room
-- `POST /api/chat/messages` - Send a message
+Create `.env.local`:
 
-### Schedule
+```bash
+# Base URL of the NestJS backend
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-- `GET /api/schedule` - Get schedule slots for a date
-- `POST /api/schedule` - Create a schedule slot
+The **AI assistant** also needs the backend configured with an OpenAI compatible LLM (`LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`). Without it, `/agent/chat` returns 502 and the UI shows a graceful error.
 
-## Usage
+## Routes
 
-### Creating a Task
+| Path | Screen |
+|---|---|
+| `/dashboard` | Overview: stats, today, upcoming, priority |
+| `/tasks` | Task management |
+| `/scheduler` | Calendar, daily, and timeline views |
+| `/chat` | Study groups and direct messages |
+| `/settings` | Profile and preferences |
+| `/login`, `/register` | Auth |
 
-1. Navigate to the "Tasks" section
-2. Click "New Task" button
-3. Fill in task details (title, subject, due date, priority)
-4. Click "Create Task"
+## Conventions
 
-### Managing Schedule
-
-1. Go to "Scheduler" section
-2. Switch between Calendar, Daily View, or Timeline
-3. Select a date to view/create schedule slots
-4. Use drag-and-drop to reschedule items
-
-### Starting Study Groups
-
-1. Navigate to "Study Groups"
-2. Click "New Group" to create a chat room
-3. Invite classmates by sharing the room
-4. Start collaborating in real-time
-
-## Database Schema
-
-The application uses SQLite3 with the following main tables:
-
-- **users**: User profiles and authentication
-- **tasks**: Task information with relationships
-- **task_collaborators**: Track task assignments
-- **exams**: Exam schedule management
-- **chat_rooms**: Study group channels
-- **messages**: Chat messages with timestamps
-- **schedule_slots**: Daily time slot scheduling
-
-## Design System
-
-### Color Palette
-
-- **Primary**: #3B82F6 (Blue)
-- **Accent**: #06B6D4 (Cyan)
-- **Background**: #0F1419 (Very Dark Blue)
-- **Card**: #1A202C (Dark Gray)
-- **Border**: #2D3748 (Gray)
-- **Text**: #F8FAFC (Off White)
-
-### Typography
-
-- **Headings**: Geist Sans (Bold, 600-700 weight)
-- **Body**: Geist Sans (Regular, 400-500 weight)
-- **Monospace**: Geist Mono (Code snippets)
-
-## Performance Optimizations
-
-- Client-side caching with React hooks
-- Optimistic UI updates
-- Smooth animations with Framer Motion
-- Responsive images and lazy loading
-- Efficient database queries with indexes
-
-## Future Enhancements
-
-- User authentication and multi-user support
-- WebSocket for real-time updates
-- Push notifications
-- Export functionality (PDF, Calendar)
-- Integration with Google Calendar
-- AI-powered task suggestions
-- Dark/Light theme toggle
-- Advanced filtering and search
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-MIT License - feel free to use this project for personal or commercial purposes.
-
-## Support
-
-For issues, questions, or suggestions, please open an issue in the repository.
+- Add a backend endpoint to `lib/api-config.ts`, its types to `lib/types.ts`, then consume it from a hook.
+- Add UI primitives with `npx shadcn@latest add <component>`; they land in `components/ui`.
+- Keep the contract honest: if the backend response shape changes, update `lib/types.ts` and the normalizer, not the components.
 
 ---
 
-Built with passion for academic excellence. Maximize your productivity with Saku!
+<div align="center">
+Built for students who would rather study than juggle tabs.
+</div>
