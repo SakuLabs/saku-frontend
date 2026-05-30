@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient, getToken } from '@/lib/api-client';
 import { API_CONFIG } from '@/lib/api-config';
-import type { Task, RawTask, CreateTaskRequest, UpdateTaskStatusRequest, UpdateTaskProgressRequest } from '@/lib/types';
+import type { Task, TaskStatus, RawTask, CreateTaskRequest, UpdateTaskStatusRequest, UpdateTaskProgressRequest } from '@/lib/types';
 import { normalizeTask } from '@/lib/types';
 
 // Re-export Task type for components that need it
@@ -12,7 +12,7 @@ interface UseTasksReturn {
   loading: boolean;
   error: string | null;
   createTask: (taskData: CreateTaskRequest) => Promise<Task | null>;
-  updateStatus: (id: string, status: 'IN_PROGRESS' | 'DONE') => Promise<Task | null>;
+  updateStatus: (id: string, status: TaskStatus) => Promise<Task | null>;
   updateProgress: (id: string, progress: number) => Promise<Task | null>;
   deleteTask: (id: string) => Promise<boolean>;
   refreshTasks: () => Promise<void>;
@@ -58,7 +58,17 @@ export function useTasks(): UseTasksReturn {
     }
   }, []);
 
-  const updateStatus = useCallback(async (id: string, status: 'IN_PROGRESS' | 'DONE') => {
+  const updateStatus = useCallback(async (id: string, status: TaskStatus) => {
+    // Optimistic update: flip status locally first so the board feels instant.
+    let previous: Task | undefined;
+    setTasks(prev => prev.map(t => {
+      if (t.id === id) {
+        previous = t;
+        return { ...t, status };
+      }
+      return t;
+    }));
+
     try {
       const raw = await apiClient.patch<RawTask>(
         API_CONFIG.ENDPOINTS.TASKS.UPDATE_STATUS(id),
@@ -68,6 +78,11 @@ export function useTasks(): UseTasksReturn {
       setTasks(prev => prev.map(t => t.id === id ? updated : t));
       return updated;
     } catch (err) {
+      // Roll back to the pre-drag status on failure.
+      if (previous) {
+        const restored = previous;
+        setTasks(prev => prev.map(t => t.id === id ? restored : t));
+      }
       setError(err instanceof Error ? err.message : 'Unknown error');
       return null;
     }
