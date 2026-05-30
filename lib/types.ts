@@ -44,18 +44,54 @@ export interface UpdateUserRequest {
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'DONE';
 
+// Canonical task shape used throughout the frontend.
 export interface Task {
   id: string;
-  userId: string;
+  userId?: string;
   title: string;
   description?: string;
   priority: TaskPriority;
   status: TaskStatus;
   progress: number;
+  startDate?: string;
   dueDate?: string;
   scheduleId?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+}
+
+// Raw task as returned by the NestJS backend: numeric priority + `deadline`.
+export interface RawTask {
+  id: string;
+  title: string;
+  description?: string;
+  startDate?: string;
+  deadline?: string;
+  priority: number;
+  status: TaskStatus;
+  progress: number;
+  createdAt: string;
+}
+
+const TASK_PRIORITY_BY_NUMBER: Record<number, TaskPriority> = {
+  1: 'LOW',
+  2: 'MEDIUM',
+  3: 'HIGH',
+};
+
+// Map the backend task payload onto the canonical frontend shape.
+export function normalizeTask(raw: RawTask): Task {
+  return {
+    id: raw.id,
+    title: raw.title,
+    description: raw.description,
+    priority: TASK_PRIORITY_BY_NUMBER[raw.priority] ?? 'LOW',
+    status: raw.status,
+    progress: raw.progress ?? 0,
+    startDate: raw.startDate,
+    dueDate: raw.deadline,
+    createdAt: raw.createdAt,
+  };
 }
 
 export interface CreateTaskRequest {
@@ -74,10 +110,10 @@ export interface UpdateTaskProgressRequest {
   progress: number;
 }
 
-// Schedule Types
-export type ScheduleType = 'STUDY' | 'EXAM' | 'ASSIGNMENT' | 'MEETING' | 'OTHER';
-export type ScheduleColor = 'RED' | 'BLUE' | 'GREEN' | 'YELLOW' | 'PURPLE' | 'ORANGE';
-export type ScheduleImportance = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+// Schedule Types (values match the NestJS backend)
+export type ScheduleType = 'EVENT' | 'MEETING' | 'TASK_REMINDER';
+export type ScheduleColor = 'purple' | 'blue' | 'green' | 'orange' | 'red';
+export type ScheduleImportance = 'LOW' | 'NORMAL' | 'HIGH';
 
 export interface Schedule {
   id: string;
@@ -91,8 +127,8 @@ export interface Schedule {
   progress: number;
   description?: string;
   groupId?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateScheduleRequest {

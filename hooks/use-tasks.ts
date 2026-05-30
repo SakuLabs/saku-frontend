@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient, getToken } from '@/lib/api-client';
 import { API_CONFIG } from '@/lib/api-config';
-import type { Task, CreateTaskRequest, UpdateTaskStatusRequest, UpdateTaskProgressRequest } from '@/lib/types';
+import type { Task, RawTask, CreateTaskRequest, UpdateTaskStatusRequest, UpdateTaskProgressRequest } from '@/lib/types';
+import { normalizeTask } from '@/lib/types';
 
 // Re-export Task type for components that need it
 export type { Task };
@@ -32,8 +33,8 @@ export function useTasks(): UseTasksReturn {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient.get<Task[]>(API_CONFIG.ENDPOINTS.TASKS.GET_ALL);
-      setTasks(data);
+      const data = await apiClient.get<RawTask[]>(API_CONFIG.ENDPOINTS.TASKS.GET_ALL);
+      setTasks(data.map(normalizeTask));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -47,7 +48,8 @@ export function useTasks(): UseTasksReturn {
 
   const createTask = useCallback(async (taskData: CreateTaskRequest) => {
     try {
-      const newTask = await apiClient.post<Task>(API_CONFIG.ENDPOINTS.TASKS.CREATE, taskData);
+      const raw = await apiClient.post<RawTask>(API_CONFIG.ENDPOINTS.TASKS.CREATE, taskData);
+      const newTask = normalizeTask(raw);
       setTasks(prev => [...prev, newTask]);
       return newTask;
     } catch (err) {
@@ -58,10 +60,11 @@ export function useTasks(): UseTasksReturn {
 
   const updateStatus = useCallback(async (id: string, status: 'IN_PROGRESS' | 'DONE') => {
     try {
-      const updated = await apiClient.patch<Task>(
+      const raw = await apiClient.patch<RawTask>(
         API_CONFIG.ENDPOINTS.TASKS.UPDATE_STATUS(id),
         { status }
       );
+      const updated = normalizeTask(raw);
       setTasks(prev => prev.map(t => t.id === id ? updated : t));
       return updated;
     } catch (err) {
@@ -72,10 +75,11 @@ export function useTasks(): UseTasksReturn {
 
   const updateProgress = useCallback(async (id: string, progress: number) => {
     try {
-      const updated = await apiClient.patch<Task>(
+      const raw = await apiClient.patch<RawTask>(
         API_CONFIG.ENDPOINTS.TASKS.UPDATE_PROGRESS(id),
         { progress }
       );
+      const updated = normalizeTask(raw);
       setTasks(prev => prev.map(t => t.id === id ? updated : t));
       return updated;
     } catch (err) {

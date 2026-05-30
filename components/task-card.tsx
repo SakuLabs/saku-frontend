@@ -55,20 +55,10 @@ const priorityConfig: Record<TaskPriority, { color: string; border: string; bg: 
   }
 };
 
-const formatPriorityLabel = (priority: number) => {
-  switch (priority) {
-    case 1: return 'LOW';
-    case 2: return 'MEDIUM';
-    case 3: return 'HIGH';
-    default: return 'LOW';
-  }
-};
-
 export function TaskCard({ task, onEdit, onDelete, onStatusChange, viewMode = 'list' }: TaskCardProps) {
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE';
-  
-  const formattedPriority = formatPriorityLabel(Number(task.priority));
-  const effectivePriority = priorityConfig[formattedPriority] ? formattedPriority : 'LOW';
+
+  const effectivePriority = priorityConfig[task.priority] ? task.priority : 'LOW';
   const priority = priorityConfig[effectivePriority];
   
   const isDone = task.status === 'DONE';
