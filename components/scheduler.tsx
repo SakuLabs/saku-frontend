@@ -11,8 +11,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScheduleForm } from '@/components/schedule-form';
+import type { CreateScheduleRequest } from '@/lib/types';
 import { format, isSameDay } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, LayoutList, ListTodo } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, LayoutList, ListTodo, Plus } from 'lucide-react';
 
 interface SchedulerProps {
   userId: string;
@@ -21,8 +31,14 @@ interface SchedulerProps {
 export function Scheduler({ userId }: SchedulerProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { tasks } = useTasks();
-  const { schedules } = useSchedule();
+  const { schedules, createSchedule, error: scheduleError } = useSchedule();
   const [activeView, setActiveView] = useState<'calendar' | 'daily' | 'timeline'>('calendar');
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const handleCreateSchedule = async (data: CreateScheduleRequest) => {
+    const created = await createSchedule(data);
+    if (created) setCreateOpen(false);
+  };
 
   const upcomingDeadlines = tasks
     .filter(t => t.dueDate && new Date(t.dueDate) >= new Date())
@@ -40,20 +56,44 @@ export function Scheduler({ userId }: SchedulerProps) {
           <p className="text-muted-foreground">Manage your time and upcoming assignments.</p>
         </div>
         
-        <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full md:w-auto">
-          <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-            <TabsTrigger value="calendar" className="gap-2">
-              <CalendarIcon className="w-4 h-4" /> Calendar
-            </TabsTrigger>
-            <TabsTrigger value="daily" className="gap-2">
-              <Clock className="w-4 h-4" /> Daily
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-2">
-              <LayoutList className="w-4 h-4" /> Timeline
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full md:w-auto">
+            <TabsList className="grid w-full grid-cols-3 md:w-[360px]">
+              <TabsTrigger value="calendar" className="gap-2">
+                <CalendarIcon className="w-4 h-4" /> Calendar
+              </TabsTrigger>
+              <TabsTrigger value="daily" className="gap-2">
+                <Clock className="w-4 h-4" /> Daily
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="gap-2">
+                <LayoutList className="w-4 h-4" /> Timeline
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2 shrink-0">
+            <Plus className="w-4 h-4" /> New Event
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>New Event</DialogTitle>
+            <DialogDescription>
+              Add an event, meeting, or reminder to your schedule.
+            </DialogDescription>
+          </DialogHeader>
+          <ScheduleForm
+            defaultDate={selectedDate}
+            onSubmit={handleCreateSchedule}
+            onClose={() => setCreateOpen(false)}
+          />
+          {scheduleError && (
+            <p className="text-sm text-destructive">{scheduleError}</p>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
         {/* Main Content Area */}
