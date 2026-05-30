@@ -187,21 +187,24 @@ export default function DashboardPage() {
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span>Online Status</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-lg min-h-[44px] sm:min-h-[60px] flex items-center flex-wrap gap-x-2">
-            <TypewriterEffect
-              words={[
-                "Hi,",
-                "您好,",
-                "Bonjour,",
-                "Ciao,",
-                "こんにちは,",
-                "Hola,",
-                "Guten Tag,",
-                "Namaste,",
-              ]}
-              className="text-white"
-              cursorClassName="bg-blue-400"
-            />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white drop-shadow-lg flex flex-col gap-y-1">
+            {/* Own line with reserved height so the cycling word can't reflow the name below it */}
+            <span className="flex items-center min-h-[1.25em] whitespace-nowrap">
+              <TypewriterEffect
+                words={[
+                  "Hi,",
+                  "您好,",
+                  "Bonjour,",
+                  "Ciao,",
+                  "こんにちは,",
+                  "Hola,",
+                  "Guten Tag,",
+                  "Namaste,",
+                ]}
+                className="text-white"
+                cursorClassName="bg-blue-400"
+              />
+            </span>
             <span className="text-blue-300">
               {user?.name?.split(" ")[0] || "there"}!
             </span>
