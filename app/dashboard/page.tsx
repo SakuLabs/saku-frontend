@@ -173,8 +173,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6 md:space-y-8 relative">
       {/* Ambient Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] hidden sm:block pointer-events-none" />
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] hidden sm:block pointer-events-none" />
 
       {/* Header Section */}
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between relative z-30">

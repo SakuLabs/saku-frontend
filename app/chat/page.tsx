@@ -22,8 +22,8 @@ export default function ChatPage() {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] relative overflow-hidden">
         {/* Ambient Glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] hidden sm:block pointer-events-none" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] hidden sm:block pointer-events-none" />
 
         <div className="flex flex-col items-center gap-4 relative z-10">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -37,8 +37,8 @@ export default function ChatPage() {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)] relative overflow-hidden">
         {/* Ambient Glows */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] hidden sm:block pointer-events-none" />
+        <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] hidden sm:block pointer-events-none" />
         
         <div className="glass-panel p-8 rounded-3xl flex flex-col items-center gap-6 text-center relative z-10 max-w-md mx-4">
           <h2 className="text-2xl font-bold text-white">Authentication Required</h2>
@@ -54,8 +54,8 @@ export default function ChatPage() {
   return (
     <div className="relative">
       {/* Ambient Glows */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] hidden sm:block pointer-events-none" />
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] hidden sm:block pointer-events-none" />
       
       <div className="relative z-10">
         <ChatSystem userId={user.id} userCode={user.userCode} userName={user.name} />

@@ -71,10 +71,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Ambient Glows — cores held inside the clip box so the falloff reads as ambient, not cropped */}
-      <div className="absolute top-0 left-[6%] w-[560px] h-[560px] rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute top-[12%] right-[2%] w-[440px] h-[440px] rounded-full blur-[150px] pointer-events-none" />
-
       <div className="container max-w-6xl px-4 sm:px-6 lg:px-8 py-6 lg:py-10 space-y-6 sm:space-y-8 relative z-10">
         {/* Header */}
         <div className="flex flex-col space-y-2">
