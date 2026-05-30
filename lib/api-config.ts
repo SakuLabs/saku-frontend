@@ -42,7 +42,15 @@ export const API_CONFIG = {
       GET_DIRECT_MESSAGES: (userId: string) => `/chat/dm/${userId}`,
       SEND_MESSAGE: '/chat/messages',
     },
-    
+
+    // AI Agent endpoints
+    AGENT: {
+      CHAT: '/agent/chat',
+      CONVERSATIONS: '/agent/conversations',
+      CONVERSATION_MESSAGES: (id: string) =>
+        `/agent/conversations/${id}/messages`,
+    },
+
     // Social endpoints
     SOCIAL: {
       GET_FRIENDS: '/social/friends',

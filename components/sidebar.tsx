@@ -30,6 +30,8 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useReducedMotion } from "framer-motion";
+import { Component as EtherealShadow } from "@/components/ui/etheral-shadow";
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -43,6 +45,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const { toggleSidebar, open } = useSidebar();
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const reduceMotion = useReducedMotion();
 
   if (pathname === '/login' || pathname === '/register' || pathname === '/') {
     return <main className="h-screen w-full bg-background overflow-auto">{children}</main>;
@@ -50,6 +53,20 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen w-full relative overflow-hidden">
+      {/* Ethereal shadow background — drifts behind the whole app shell */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        {!reduceMotion && (
+          <EtherealShadow
+            color="rgba(99, 102, 241, 1)"
+            animation={{ scale: 100, speed: 75 }}
+            noise={{ opacity: 0.45, scale: 1.2 }}
+            sizing="fill"
+          />
+        )}
+        {/* Scrim keeps dense dashboard content legible over the moving shadow */}
+        <div className="absolute inset-0 bg-[#030712]/55" />
+      </div>
+
       <Sidebar collapsible="icon" className="border-r-0 glass-sidebar z-20">
         <SidebarHeader className="transition-all duration-300 group-data-[collapsible=icon]:px-0 py-6">
           <SidebarMenu>
