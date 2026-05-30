@@ -33,7 +33,8 @@ import {
   differenceInHours,
 } from "date-fns";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   RadialBar,
   RadialBarChart,
@@ -50,6 +51,7 @@ export default function DashboardPage() {
   const { tasks, loading: tasksLoading } = useTasks();
   const { schedules, loading: schedulesLoading } = useSchedule();
   const { groups } = useSocial();
+  const reduceMotion = useReducedMotion();
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -78,19 +80,12 @@ export default function DashboardPage() {
 
   // Chart Data for Radial Bar (Completion)
   const chartData = useMemo(
-    () => [
-      {
-        browser: "safari",
-        visitors: stats.completionRate,
-        fill: "var(--color-safari)",
-      },
-    ],
+    () => [{ name: "completion", rate: stats.completionRate }],
     [stats.completionRate],
   );
 
   const chartConfig = {
-    visitors: { label: "Completion" },
-    safari: { label: "Safari", color: "hsl(var(--primary))" },
+    rate: { label: "Completion" },
   } satisfies ChartConfig;
 
   // Get today's schedule
@@ -120,27 +115,45 @@ export default function DashboardPage() {
       .slice(0, 3);
   }, [tasks]);
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 },
+      transition: { staggerChildren: reduceMotion ? 0 : 0.08 },
     },
   };
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+  const item: Variants = {
+    hidden: { opacity: 0, y: reduceMotion ? 0 : 16 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    },
   };
 
   if (tasksLoading || schedulesLoading) {
     return (
-      <div className="flex h-[50vh] w-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-          <p className="text-white/60 animate-pulse font-light tracking-wide">
-            Loading workspace...
-          </p>
+      <div className="space-y-8" aria-busy="true" aria-label="Loading workspace">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-28 bg-white/10" />
+            <Skeleton className="h-12 w-72 max-w-full bg-white/10" />
+            <Skeleton className="h-5 w-80 max-w-full bg-white/10" />
+          </div>
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-14 w-24 rounded-2xl bg-white/10" />
+            <Skeleton className="h-14 w-14 rounded-full bg-white/10" />
+          </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-36 rounded-[2rem] bg-white/5" />
+          ))}
+        </div>
+        <div className="grid gap-6 lg:grid-cols-7">
+          <Skeleton className="h-80 rounded-[2.5rem] bg-white/5 lg:col-span-3" />
+          <Skeleton className="h-80 rounded-[2.5rem] bg-white/5 lg:col-span-4" />
         </div>
       </div>
     );
@@ -174,8 +187,8 @@ export default function DashboardPage() {
               className="text-white"
               cursorClassName="bg-blue-400"
             />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300">
-              {user?.name?.split(" ")[0]}!
+            <span className="text-blue-300">
+              {user?.name?.split(" ")[0] || "there"}!
             </span>
           </h1>
           <p className="text-white/70 max-w-lg text-lg font-light leading-relaxed">
@@ -200,12 +213,18 @@ export default function DashboardPage() {
               {format(new Date(), "d MMM")}
             </span>
           </div>
-          <Avatar className="h-14 w-14 border-2 border-white/20 shadow-xl ring-2 ring-white/10 transition-transform hover:scale-105 cursor-pointer">
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback className="bg-black/40 backdrop-blur-md text-white">
-              {user?.name?.charAt(0) || "U"}
-            </AvatarFallback>
-          </Avatar>
+          <Link
+            href="/settings"
+            aria-label="Account settings"
+            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          >
+            <Avatar className="h-14 w-14 border-2 border-white/20 shadow-xl ring-2 ring-white/10 transition-transform hover:scale-105">
+              <AvatarImage src={user?.avatarUrl} />
+              <AvatarFallback className="bg-black/40 backdrop-blur-md text-white">
+                {user?.name?.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
       </div>
 
@@ -231,9 +250,13 @@ export default function DashboardPage() {
             <div className="mt-4 flex items-center gap-2">
               <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-400 w-[70%]"
+                  className="h-full bg-blue-400 transition-[width] duration-500"
                   style={{
-                    width: `${(stats.todoTasks / stats.totalTasks) * 100}%`,
+                    width: `${
+                      stats.totalTasks > 0
+                        ? (stats.todoTasks / stats.totalTasks) * 100
+                        : 0
+                    }%`,
                   }}
                 />
               </div>
@@ -277,14 +300,22 @@ export default function DashboardPage() {
                 {stats.inProgressTasks}
               </div>
             </div>
-            <div className="mt-4 flex -space-x-2 overflow-hidden">
-              {/* Placeholder avatars for "people working on this" effect */}
-              {[1, 2, 3].map((i) => (
+            <div className="mt-4 flex items-center gap-2">
+              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                 <div
-                  key={i}
-                  className="inline-block h-6 w-6 rounded-full ring-2 ring-black bg-white/20 backdrop-blur-sm"
+                  className="h-full bg-amber-400 transition-[width] duration-500"
+                  style={{
+                    width: `${
+                      stats.totalTasks > 0
+                        ? (stats.inProgressTasks / stats.totalTasks) * 100
+                        : 0
+                    }%`,
+                  }}
                 />
-              ))}
+              </div>
+              <span className="text-xs text-amber-300 font-medium whitespace-nowrap">
+                of {stats.totalTasks}
+              </span>
             </div>
           </div>
         </motion.div>
@@ -352,11 +383,11 @@ export default function DashboardPage() {
                   <PolarAngleAxis
                     type="number"
                     domain={[0, 100]}
-                    dataKey="visitors"
+                    dataKey="rate"
                     tick={false}
                   />
                   <RadialBar
-                    dataKey="visitors"
+                    dataKey="rate"
                     background={{ fill: "rgba(255, 255, 255, 0.05)" }}
                     cornerRadius={10}
                     fill="url(#productivity-gradient)"
@@ -447,17 +478,17 @@ export default function DashboardPage() {
 
             <div className="space-y-3 flex-1">
               {todaySchedule.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-white/40 space-y-4">
+                <div className="h-full flex flex-col items-center justify-center text-center text-white/60 space-y-4">
                   <div className="p-4 rounded-full bg-white/5 border border-white/5">
                     <Sparkles className="h-8 w-8 opacity-50" />
                   </div>
                   <p>No events today. Enjoy your free time!</p>
                 </div>
               ) : (
-                todaySchedule.map((schedule, i) => (
+                todaySchedule.map((schedule) => (
                   <div
                     key={schedule.id}
-                    className="group flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-4 transition-all hover:bg-white/10 hover:border-white/10 hover:scale-[1.02] active:scale-[0.98]"
+                    className="group flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-4 transition-colors hover:bg-white/10 hover:border-white/10"
                   >
                     <div className="flex flex-col items-center justify-center rounded-xl bg-white/5 p-2 w-16 h-16 shrink-0 backdrop-blur-sm border border-white/5">
                       <span className="text-[10px] font-medium text-white/50 uppercase tracking-wider">
@@ -496,14 +527,23 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <div className="glass-panel rounded-[2.5rem] p-6 h-full border-l-4 border-l-red-400/50">
+          <div className="glass-panel rounded-[2.5rem] p-6 h-full">
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-red-500/15 border border-red-500/20">
                   <AlertCircle className="h-5 w-5 text-red-400" />
-                  Priority Focus
-                </h3>
-                <p className="text-sm text-white/50">Due in 72 hours</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-0.5 flex items-center gap-2">
+                    Priority Focus
+                    {urgentTasks.length > 0 && (
+                      <span className="text-xs font-bold text-red-300 bg-red-500/15 rounded-full px-2 py-0.5">
+                        {urgentTasks.length}
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-sm text-white/50">Due in 72 hours</p>
+                </div>
               </div>
               <Link href="/tasks">
                 <Button
@@ -517,7 +557,7 @@ export default function DashboardPage() {
 
             <div className="space-y-3">
               {urgentTasks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-white/40">
+                <div className="flex flex-col items-center justify-center py-12 text-white/60">
                   <p>You're clear! No urgent deadlines.</p>
                 </div>
               ) : (
@@ -533,7 +573,7 @@ export default function DashboardPage() {
                       <p className="font-medium text-white truncate">
                         {task.title}
                       </p>
-                      <p className="text-xs text-white/40 mt-0.5">
+                      <p className="text-xs text-white/60 mt-0.5">
                         Due {format(parseISO(task.dueDate!), "MMM d, h:mm a")}
                       </p>
                     </div>
@@ -552,7 +592,7 @@ export default function DashboardPage() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 rounded-full text-white/30 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 rounded-full text-white/50 hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
