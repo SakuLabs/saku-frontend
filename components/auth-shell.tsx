@@ -1,13 +1,11 @@
 /* Hallmark · macrostructure: Floating Glass Card · genre: atmospheric
  * tone: midnight-glass · anchor hue: indigo (~265) · studied: no
- * states: card reveal (fade+rise) · aurora drift · float — reduced-motion: collapses to opacity
+ * states: card reveal (fade+rise) — reduced-motion: collapses to opacity
  */
 "use client";
 
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { Component as EtherealShadow } from "@/components/ui/etheral-shadow";
-import { useHeavyAnimation } from "@/hooks/use-heavy-animation";
 
 export function AuthShell({
   heading,
@@ -21,23 +19,14 @@ export function AuthShell({
   footer: React.ReactNode;
 }) {
   const reduceMotion = useReducedMotion();
-  const animateShadow = useHeavyAnimation();
 
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 py-10">
-      {/* Ethereal shadow background — indigo-tinted, drifting */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-        {animateShadow && (
-          <EtherealShadow
-            color="rgba(99, 102, 241, 1)"
-            animation={{ scale: 100, speed: 90 }}
-            noise={{ opacity: 1, scale: 1.2 }}
-            sizing="fill"
-          />
-        )}
-        {/* Dark scrim keeps the form legible over the moving shadow */}
-        <div className="absolute inset-0 bg-[#030712]/35" />
-      </div>
+      {/* Static indigo gradient backdrop */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-indigo-500/15 via-[#030712] to-[#030712]"
+      />
 
       <motion.div
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12 }}
